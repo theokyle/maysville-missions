@@ -5,7 +5,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateJourneyDto {
