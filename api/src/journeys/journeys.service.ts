@@ -15,7 +15,7 @@ export class JourneysService {
         description,
         icon,
         tasks: {
-          create: tasks,
+          create: tasks ?? [],
         },
       },
       include: {
@@ -40,8 +40,8 @@ export class JourneysService {
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.journey.findUnique({
+  async findOne(id: string) {
+    const journey = await this.prisma.journey.findUnique({
       where: {
         id,
       },
@@ -53,6 +53,12 @@ export class JourneysService {
         },
       },
     });
+
+    if (!journey) {
+      throw new NotFoundException('Journey not found');
+    }
+
+    return journey;
   }
 
   async update(id: string, updateJourneyDto: UpdateJourneyDto) {
