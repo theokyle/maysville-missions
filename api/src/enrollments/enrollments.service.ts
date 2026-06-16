@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { JourneyStatus } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EnrollmentStatusDto } from './dto/enrollment-status.dto';
 
 @Injectable()
 export class EnrollmentsService {
@@ -94,7 +94,13 @@ export class EnrollmentsService {
     });
   }
 
-  updateStatus(userId: string, journeyId: string, status: JourneyStatus) {
+  updateStatus(
+    userId: string,
+    journeyId: string,
+    enrollmentStatusDto: EnrollmentStatusDto,
+  ) {
+    const { status } = enrollmentStatusDto;
+
     return this.prisma.userJourney.update({
       where: {
         userId_journeyId: {

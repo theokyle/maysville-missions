@@ -11,7 +11,7 @@ import {
 import { EnrollmentsService } from './enrollments.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
-import { JourneyStatus } from 'src/generated/prisma/enums';
+import { EnrollmentStatusDto } from './dto/enrollment-status.dto';
 
 @Controller()
 @UseGuards(AuthGuard())
@@ -40,12 +40,12 @@ export class EnrollmentsController {
   update(
     @Param('journeyId') journeyId: string,
     @GetUser('id') userId: string,
-    @Body() enrollmentStatus: JourneyStatus,
+    @Body() enrollmentStatusDto: EnrollmentStatusDto,
   ) {
     return this.enrollmentsService.updateStatus(
       userId,
       journeyId,
-      enrollmentStatus,
+      enrollmentStatusDto,
     );
   }
 

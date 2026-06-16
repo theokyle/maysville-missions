@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateProgressDto } from './create-progress.dto';
+import { IsInt, Min } from 'class-validator';
 
-export class UpdateProgressDto extends PartialType(CreateProgressDto) {}
+export class UpdateProgressDto {
+  @IsInt()
+  @Min(0)
+  count!: number;
+}
