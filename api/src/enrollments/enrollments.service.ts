@@ -54,7 +54,24 @@ export class EnrollmentsService {
         })),
       });
 
-      return userJourney;
+      return tx.userJourney.findUnique({
+        where: {
+          id: userJourney.id,
+        },
+        include: {
+          journey: true,
+          taskProgress: {
+            include: {
+              journeyTask: true,
+            },
+            orderBy: {
+              journeyTask: {
+                sortOrder: 'asc',
+              },
+            },
+          },
+        },
+      });
     });
   }
 
@@ -64,9 +81,15 @@ export class EnrollmentsService {
         userId,
       },
       include: {
-        journey: {
+        journey: true,
+        taskProgress: {
           include: {
-            tasks: true,
+            journeyTask: true,
+          },
+          orderBy: {
+            journeyTask: {
+              sortOrder: 'asc',
+            },
           },
         },
       },
@@ -85,9 +108,15 @@ export class EnrollmentsService {
         },
       },
       include: {
-        journey: {
+        journey: true,
+        taskProgress: {
           include: {
-            tasks: true,
+            journeyTask: true,
+          },
+          orderBy: {
+            journeyTask: {
+              sortOrder: 'asc',
+            },
           },
         },
       },

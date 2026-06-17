@@ -8,7 +8,13 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { ProgressModule } from './progress/progress.module';
 
 @Module({
-  imports: [PrismaModule, JourneysModule, AuthModule, EnrollmentsModule, ProgressModule],
+  imports: [
+    PrismaModule,
+    JourneysModule,
+    AuthModule,
+    EnrollmentsModule,
+    ProgressModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

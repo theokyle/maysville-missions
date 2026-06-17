@@ -1,25 +1,68 @@
-import { Controller, Get, Body, Patch, Param, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ProgressService } from './progress.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
-import { UpdateProgressDto } from './dto/update-progress.dto';
+import { CreateActivityDto } from './dto/create-activity.dto';
+import { UpdateActivityDto } from './dto/update-activity.dto';
 
-@Controller()
+@Controller('me/tasks')
 @UseGuards(AuthGuard())
 export class ProgressController {
   constructor(private readonly progressService: ProgressService) {}
 
-  @Get('me/tasks')
-  findAll(@GetUser('id') userId: string) {
+  @Get()
+  getAllTasks(@GetUser('id') userId: string) {
     return this.progressService.getAllTasks(userId);
   }
 
-  @Patch('me/tasks/:id')
-  update(
-    @Param('id') id: string,
-    @Body() updateProgressDto: UpdateProgressDto,
+  @Post(':taskProgressId/activities')
+  addActivity(
+    @Body() createActivityDto: CreateActivityDto,
+    @Param('taskProgressId') taskProgressId: string,
     @GetUser('id') userId: string,
   ) {
-    return this.progressService.updateCount(userId, id, updateProgressDto);
+    return this.progressService.addActivity(
+      createActivityDto,
+      taskProgressId,
+      userId,
+    );
+  }
+
+  @Get(':taskProgressId/activities')
+  findAll(
+    @Param('taskProgressId') taskProgressId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.progressService.getAllActivities(userId, taskProgressId);
+  }
+
+  @Patch(':taskProgressId/activities/:activityId')
+  update(
+    @Param('activityId') activityId: string,
+    @GetUser('id') userId: string,
+    @Body() updateActivityDto: UpdateActivityDto,
+  ) {
+    return this.progressService.updateActivity(
+      activityId,
+      updateActivityDto,
+      userId,
+    );
+  }
+
+  @Delete(':taskProgressId/activities/:activityId')
+  remove(
+    @Param('activityId') activityId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return this.progressService.deleteActivity(activityId, userId);
   }
 }
