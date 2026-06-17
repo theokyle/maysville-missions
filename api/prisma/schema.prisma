@@ -13,6 +13,7 @@ model User {
   email     String   @unique
   password  String    
   name      String?
+  role      UserRole @default(USER)
 
   journeys  UserJourney[]
 
@@ -63,6 +64,7 @@ model UserJourney {
   status     JourneyStatus @default(IN_PROGRESS)
 
   startedAt  DateTime @default(now())
+  completed Boolean @default(false)
   completedAt DateTime?
 
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -82,10 +84,11 @@ model UserTaskProgress {
   journeyTaskId  String
 
   currentCount   Int      @default(0)
-
   completed      Boolean  @default(false)
 
   completedAt    DateTime?
+
+  activity      Activity[]
 
   userJourney UserJourney @relation(fields: [userJourneyId], references: [id], onDelete: Cascade)
   journeyTask JourneyTask @relation(fields: [journeyTaskId], references: [id], onDelete: Cascade)
@@ -94,8 +97,26 @@ model UserTaskProgress {
   @@index([journeyTaskId])
 }
 
+model Activity {
+  id String @id @default(uuid())
+
+  name String?
+  note String?
+
+  taskProgressId String
+
+  taskProgress UserTaskProgress @relation(fields: [taskProgressId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
 enum JourneyStatus {
   IN_PROGRESS
   COMPLETED
   ABANDONED
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }
