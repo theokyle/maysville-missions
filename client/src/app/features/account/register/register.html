@@ -1,0 +1,50 @@
+<div class="card bg-base-100 max-w-md mx-auto shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title justify-center text-3xl text-primary mb-4">Create Account</h2>
+
+    <form class="flex flex-col gap-5">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Email</legend>
+        <input
+          class="input input-bordered w-full"
+          type="email"
+          placeholder="you@example.com"
+          [formField]="registerForm.email"
+        />
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Name</legend>
+        <input
+          class="input input-bordered w-full"
+          type="text"
+          placeholder="Your name"
+          [formField]="registerForm.name"
+        />
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Password</legend>
+        <input
+          class="input input-bordered w-full"
+          type="password"
+          placeholder="••••••••"
+          [formField]="registerForm.password"
+        />
+      </fieldset>
+
+      <div class="card-actions justify-end mt-4">
+        <button class="btn btn-ghost" type="button" (click)="cancel()">Cancel</button>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          (click)="submit()"
+          [disabled]="registerForm().invalid()"
+        >
+          Sign Up
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
