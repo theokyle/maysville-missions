@@ -20,7 +20,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -28,6 +28,16 @@ export class AuthService {
         role,
       },
     });
+
+    return {
+      accessToken: this.createToken(user),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 
   async signin(userCredentialsDto: UserCredentialsDto) {
@@ -40,11 +50,23 @@ export class AuthService {
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      const payload: JwtPayload = { id: user.id };
-      const accessToken = this.jwtService.sign(payload);
-      return { accessToken };
+      return {
+        accessToken: this.createToken(user),
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      };
     } else {
       throw new UnauthorizedException();
     }
+  }
+
+  createToken(user: User) {
+    const payload: JwtPayload = { id: user.id };
+    const accessToken = this.jwtService.sign(payload);
+    return { accessToken };
   }
 }
