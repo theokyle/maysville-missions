@@ -1,16 +1,42 @@
 <div class="flex justify-around pt-10">
   @for (journey of journeys(); track journey.id) {
-    <div class="card bg-base-100 w-96 shadow-sm">
+    <div class="card bg-base-100 w-96 shadow-sm hover:shadow-lg transition-shadow">
       <figure class="px-10 pt-10">
-        <img src="{{ journey.icon }}" alt="{{ journey.title }}" class="rounded-xl" />
+        <img
+          src="{{ journey.icon }}"
+          alt="{{ journey.title }}"
+          class="rounded-xl h-32 w-32 object-contain"
+        />
       </figure>
-      <div class="card-body items-center text-center">
-        <h2 class="card-title">{{ journey.title }}</h2>
-        <p>
+
+      <div class="card-body">
+        <h2 class="card-title justify-center text-xl font-bold">
+          {{ journey.title }}
+        </h2>
+
+        <p class="text-base-content/70 text-sm">
           {{ journey.description }}
         </p>
-        <div class="card-actions">
-          <button class="btn btn-primary">Join the Journey</button>
+
+        @if (journey.tasks) {
+          <div class="mt-4 border-t border-base-300 pt-4">
+            <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-base-content/80">
+              Included Tasks
+            </h3>
+
+            <ul class="space-y-2">
+              @for (task of journey.tasks; track task.id) {
+                <li class="flex items-start gap-2 text-sm">
+                  <span class="text-success mt-0.5">✓</span>
+                  <span>{{ task.title }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="card-actions justify-center mt-6">
+          <button class="btn btn-primary w-full">Join the Journey</button>
         </div>
       </div>
     </div>

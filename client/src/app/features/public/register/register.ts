@@ -1,5 +1,5 @@
 import { Component, inject, output, signal } from '@angular/core';
-import { AccountService } from '../account-service';
+import { AccountService } from '../../../core/account/account-service';
 import { form, FormField } from '@angular/forms/signals';
 import { RegisterCreds } from '../../../types/user';
 import { Router } from '@angular/router';

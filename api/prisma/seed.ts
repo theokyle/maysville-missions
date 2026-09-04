@@ -10,72 +10,226 @@ const prisma = new PrismaClient({ adapter });
 const journeys = [
   {
     title: 'Neighbor Noticer',
-    tasks: [
+    description: '7 days - Become a good neighbor',
+    image: '/neighbor-noticer.png',
+    steps: [
       {
-        title: 'Wave at your neighbor when driving by',
-        targetCount: 3,
-        sortOrder: 1,
-      },
-      {
-        title:
-          'Say hi to the person in front of you or behind you in the next line you are in',
-        targetCount: 3,
-        sortOrder: 2,
-      },
-      {
-        title: 'Ask a neighbor, "How are you today?"',
-        targetCount: 3,
-        sortOrder: 3,
-      },
-    ],
-  },
-  {
-    title: 'Table Builder',
-    tasks: [
-      {
-        title: 'Invite a friend to coffee',
+        title: 'Smile at a neighbor',
         targetCount: 1,
         sortOrder: 1,
       },
       {
-        title: 'Invite a friend and someone new to coffee',
+        title: 'Wave at a neighbor',
         targetCount: 1,
         sortOrder: 2,
       },
       {
-        title: 'Gather a small group (3+) for coffee or a meal',
+        title: 'Say Hello, Good Morning, etc.',
         targetCount: 1,
         sortOrder: 3,
       },
       {
-        title: 'Host a dinner for several people',
+        title: 'Ask a neighbor, “How’s it going?”',
         targetCount: 1,
         sortOrder: 4,
       },
+      {
+        title: 'Offer your name to your neighbor.',
+        targetCount: 1,
+        sortOrder: 5,
+      },
+      {
+        title: 'Help your neighbor with something in the yard.',
+        targetCount: 1,
+        sortOrder: 6,
+      },
+      {
+        title: 'Give your neighbor a small gift',
+        targetCount: 1,
+        sortOrder: 7,
+      },
     ],
   },
+
   {
-    title: 'The Encourager',
-    tasks: [
+    title: 'Encourager',
+    description: '5 days - Practice Affirmation',
+    image: '/encourager.png',
+    steps: [
       {
-        title: 'Send an encouraging text',
+        title: 'Send a text',
+        targetCount: 1,
+        sortOrder: 1,
+      },
+      {
+        title: 'Send a card',
+        targetCount: 1,
+        sortOrder: 2,
+      },
+      {
+        title: 'Give a compliment',
+        targetCount: 1,
+        sortOrder: 3,
+      },
+      {
+        title: 'Tell someone they are doing a good job',
+        targetCount: 1,
+        sortOrder: 4,
+      },
+      {
+        title: 'Your choice',
+        targetCount: 1,
+        sortOrder: 5,
+      },
+    ],
+  },
+
+  {
+    title: 'Table Builder',
+    description: '14 days - Increase Community Participation',
+    image: '/table-builder.png',
+    steps: [
+      {
+        title: 'Eat Local',
+        targetCount: 1,
+        sortOrder: 1,
+      },
+      {
+        title: 'Eat at a different local restaurant',
+        targetCount: 1,
+        sortOrder: 2,
+      },
+      {
+        title: 'Eat at a 3rd local restaurant',
+        targetCount: 1,
+        sortOrder: 3,
+      },
+      {
+        title: 'Purchase local',
+        targetCount: 1,
+        sortOrder: 4,
+      },
+      {
+        title: 'Attend a local sports game',
+        targetCount: 1,
+        sortOrder: 5,
+      },
+      {
+        title: 'Explore a neighborhood you normally do not drive through',
+        targetCount: 1,
+        sortOrder: 6,
+      },
+      {
+        title: 'Attend a local event',
+        targetCount: 1,
+        sortOrder: 7,
+      },
+      {
+        title: 'Pick up litter',
+        targetCount: 1,
+        sortOrder: 8,
+      },
+      {
+        title: 'Pay it forward',
+        targetCount: 1,
+        sortOrder: 9,
+      },
+      {
+        title: 'Help with a local fundraiser',
+        targetCount: 1,
+        sortOrder: 10,
+      },
+      {
+        title: 'Donate to the local food bank',
+        targetCount: 1,
+        sortOrder: 11,
+      },
+      {
+        title: 'Help someone at the grocery store',
+        targetCount: 1,
+        sortOrder: 12,
+      },
+      {
+        title: 'Learn who your local leaders are',
+        targetCount: 1,
+        sortOrder: 13,
+      },
+      {
+        title: 'Learn the name of someone serving you',
+        targetCount: 1,
+        sortOrder: 14,
+      },
+    ],
+  },
+
+  {
+    title: 'Bridge Builder',
+    description: '8 days - Restore Relationships',
+    image: '/bridge-builder.png',
+    steps: [
+      {
+        title: 'Reach out to 1 friend (Text, email, phone)',
+        targetCount: 1,
+        sortOrder: 1,
+      },
+      {
+        title: 'Reach out to a 2nd friend (Text, email, phone)',
+        targetCount: 1,
+        sortOrder: 2,
+      },
+      {
+        title: 'Reach out to a 3rd friend (Text, email, phone)',
+        targetCount: 1,
+        sortOrder: 3,
+      },
+      {
+        title: 'Schedule coffee with 1 friend',
+        targetCount: 1,
+        sortOrder: 4,
+      },
+      {
+        title: 'Schedule lunch with 1 friend',
+        targetCount: 1,
+        sortOrder: 5,
+      },
+      {
+        title: 'Schedule a Zoom “Happy Hour” with a long distance friend',
+        targetCount: 1,
+        sortOrder: 6,
+      },
+      {
+        title: 'Send a reelz or a TikTok',
+        targetCount: 1,
+        sortOrder: 7,
+      },
+      {
+        title: 'Send a “Thinking of You” card',
+        targetCount: 1,
+        sortOrder: 8,
+      },
+    ],
+  },
+
+  {
+    title: 'Quiet Care',
+    description:
+      '5 days - Become aware of your body holding onto tension or stress preventing you from connecting with others. FOR THIS JOURNEY DO ALL 3 FOR 5 DAYS.',
+    image: '/quiet-care.png',
+    steps: [
+      {
+        title: 'Stretch break',
         targetCount: 5,
         sortOrder: 1,
       },
       {
-        title: 'Send a card to someone',
-        targetCount: 3,
+        title: 'Take a breath',
+        targetCount: 5,
         sortOrder: 2,
       },
       {
-        title: 'Tell someone how much you appreciate them',
-        targetCount: 3,
+        title: 'Drink water',
+        targetCount: 5,
         sortOrder: 3,
-      },
-      {
-        title: 'Do something nice for someone else',
-        targetCount: 2,
-        sortOrder: 4,
       },
     ],
   },
@@ -88,8 +242,10 @@ async function main() {
     await prisma.journey.create({
       data: {
         title: journey.title,
-        tasks: {
-          create: journey.tasks,
+        description: journey.description,
+        icon: journey.image,
+        steps: {
+          create: journey.steps,
         },
       },
     });

@@ -4,6 +4,11 @@ import { LoginCreds, RegisterCreds, User } from '../../types/user';
 import { environment } from '../../../environments/environment.development';
 import { tap } from 'rxjs';
 
+interface AuthResponse {
+  user: User;
+  accessToken: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -12,26 +17,27 @@ export class AccountService {
   currentUser = signal<User | null>(null);
   private baseUrl = environment.base_url;
 
-  setCurrentUser(user: User) {
-    localStorage.setItem('user', JSON.stringify(user));
-    this.currentUser.set(user);
+  setSession(response: AuthResponse) {
+    localStorage.setItem('accessToken', response.accessToken);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    this.currentUser.set(response.user);
   }
 
   register(creds: RegisterCreds) {
-    return this.http.post<User>(`${this.baseUrl}/auth/register`, creds).pipe(
-      tap((user) => {
-        if (user) {
-          this.setCurrentUser(user);
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, creds).pipe(
+      tap((response) => {
+        if (response) {
+          this.setSession(response);
         }
       }),
     );
   }
 
   signin(creds: LoginCreds) {
-    return this.http.post<User>(`${this.baseUrl}/auth/signin`, creds).pipe(
-      tap((user) => {
-        if (user) {
-          this.setCurrentUser(user);
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/signin`, creds).pipe(
+      tap((response) => {
+        if (response) {
+          this.setSession(response);
         }
       }),
     );

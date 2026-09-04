@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { Register } from '../account/register/register';
+import { Register } from '../register/register';
 
 @Component({
   selector: 'app-home',

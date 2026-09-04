@@ -1,0 +1,125 @@
+@if (journey(); as journey) {
+<div class="collapse collapse-arrow bg-base-100 border border-base-300 shadow-sm">
+  <input type="checkbox" />
+
+  <!-- Journey Summary -->
+  <div class="collapse-title p-0">
+    <div class="flex items-center gap-4 p-5">
+
+      <!-- Journey Image -->
+      <div class="avatar">
+        <div class="w-20 rounded-xl">
+          <img
+            [src]="journey.icon"
+            [alt]="journey.title" />
+        </div>
+      </div>
+
+      <!-- Journey Info -->
+      <div class="flex-1">
+
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">
+            {{ journey.title }}
+          </h2>
+
+          <span class="badge badge-primary badge-lg">
+            {{ completedTasks() }}/{{ totalTasks() }}
+          </span>
+        </div>
+
+        <p class="mt-1 text-sm text-base-content/70">
+          {{ journey.description }}
+        </p>
+
+        <!-- Overall Progress -->
+        <div class="mt-4">
+          <progress
+            class="progress progress-primary w-full"
+            [value]="completedTasks()"
+            [max]="totalTasks()">
+          </progress>
+
+          <div class="mt-1 flex justify-between text-xs text-base-content/60">
+            <span>{{ progressPercent() }}% Complete</span>
+            <span>{{ remainingTasks() }} Remaining</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Expanded Content -->
+  <div class="collapse-content pt-0">
+
+    <div class="divider mt-0">
+      Journey Tasks
+    </div>
+
+    <div class="space-y-3">
+
+      @for (task of journey.tasks; track task.id) {
+
+        <div
+          class="rounded-xl border border-base-300 bg-base-200 p-4">
+
+          <div class="flex items-center justify-between">
+
+            <div>
+              <h3 class="font-medium">
+                {{ task.title }}
+              </h3>
+
+              @if (task.description) {
+                <p class="mt-1 text-sm text-base-content/70">
+                  {{ task.description }}
+                </p>
+              }
+            </div>
+
+            @if (task.completed) {
+
+              <div class="badge badge-success">
+                Complete
+              </div>
+
+            } @else {
+
+              <div class="badge badge-outline">
+                {{ task.currentCount }}/{{ task.targetCount }}
+              </div>
+
+            }
+
+          </div>
+
+          <!-- Task Progress -->
+
+          <progress
+            class="progress progress-success mt-3 w-full"
+            [value]="task.currentCount"
+            [max]="task.targetCount">
+          </progress>
+
+        </div>
+
+      }
+
+    </div>
+
+    <div class="mt-6 flex justify-end">
+
+      <!-- <button
+        class="btn btn-primary"
+        (click)="openLogActivity(journey)">
+
+        Log Activity
+
+      </button> -->
+
+    </div>
+
+  </div>
+}

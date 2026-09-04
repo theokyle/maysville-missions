@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { JourneyService } from './journey-service';
-import { Journey } from '../../types/journey';
+import { Journey } from '../../../types/journey';
 
 @Component({
   selector: 'app-journeys',
@@ -17,4 +17,6 @@ export class Journeys implements OnInit {
       this.journeys.set(result);
     });
   }
+
+  enroll(journeyId: string) {}
 }
