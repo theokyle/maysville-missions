@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { JourneysService } from './journeys.service';
 import { JourneysController } from './journeys.controller';
-import { JourneyTasksController } from './journey-tasks/journey-tasks.controller';
-import { JourneyTasksService } from './journey-tasks/journey-tasks.service';
+import { JourneyStepsController } from './journey-steps/journey-steps.controller';
+import { JourneyStepsService } from './journey-steps/journey-steps.service';
 
 @Module({
-  controllers: [JourneysController, JourneyTasksController],
-  providers: [JourneysService, JourneyTasksService],
+  controllers: [JourneysController, JourneyStepsController],
+  providers: [JourneysService, JourneyStepsService],
 })
 export class JourneysModule {}

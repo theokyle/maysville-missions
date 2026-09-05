@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
+import { JourneyType } from '../src/generated/prisma/client';
 
 const adapter = new PrismaNeon({
   connectionString: process.env.DATABASE_URL,
@@ -11,7 +12,8 @@ const journeys = [
   {
     title: 'Neighbor Noticer',
     description: '7 days - Become a good neighbor',
-    image: '/neighbor-noticer.png',
+    icon: '/neighbor-noticer.png',
+    type: JourneyType.INDIVIDUAL,
     steps: [
       {
         title: 'Smile at a neighbor',
@@ -54,7 +56,8 @@ const journeys = [
   {
     title: 'Encourager',
     description: '5 days - Practice Affirmation',
-    image: '/encourager.png',
+    icon: '/encourager.png',
+    type: JourneyType.INDIVIDUAL,
     steps: [
       {
         title: 'Send a text',
@@ -87,7 +90,8 @@ const journeys = [
   {
     title: 'Table Builder',
     description: '14 days - Increase Community Participation',
-    image: '/table-builder.png',
+    icon: '/table-builder.png',
+    type: JourneyType.INDIVIDUAL,
     steps: [
       {
         title: 'Eat Local',
@@ -165,7 +169,8 @@ const journeys = [
   {
     title: 'Bridge Builder',
     description: '8 days - Restore Relationships',
-    image: '/bridge-builder.png',
+    icon: '/bridge-builder.png',
+    type: JourneyType.INDIVIDUAL,
     steps: [
       {
         title: 'Reach out to 1 friend (Text, email, phone)',
@@ -214,7 +219,8 @@ const journeys = [
     title: 'Quiet Care',
     description:
       '5 days - Become aware of your body holding onto tension or stress preventing you from connecting with others. FOR THIS JOURNEY DO ALL 3 FOR 5 DAYS.',
-    image: '/quiet-care.png',
+    icon: '/quiet-care.png',
+    type: JourneyType.INDIVIDUAL,
     steps: [
       {
         title: 'Stretch break',
@@ -243,7 +249,8 @@ async function main() {
       data: {
         title: journey.title,
         description: journey.description,
-        icon: journey.image,
+        icon: journey.icon,
+        type: journey.type,
         steps: {
           create: journey.steps,
         },

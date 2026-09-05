@@ -1,14 +1,15 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   ValidateNested,
 } from 'class-validator';
+import { JourneyType } from 'src/generated/prisma/enums';
 
 export class CreateJourneyDto {
   @IsString()
@@ -19,18 +20,22 @@ export class CreateJourneyDto {
   @IsOptional()
   description?: string;
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
   icon?: string;
+
+  @IsEnum(JourneyType)
+  @IsOptional()
+  type?: JourneyType;
 
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreateJourneyTaskDto)
-  tasks?: CreateJourneyTaskDto[];
+  @Type(() => CreateJourneyStepDto)
+  steps?: CreateJourneyStepDto[];
 }
 
-export class CreateJourneyTaskDto {
+export class CreateJourneyStepDto {
   @IsString()
   @IsNotEmpty()
   title!: string;

@@ -14,38 +14,38 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 
-@Controller('me/tasks')
+@Controller('me/steps')
 @UseGuards(AuthGuard())
 export class ProgressController {
   constructor(private readonly progressService: ProgressService) {}
 
   @Get()
-  getAllTasks(@GetUser('id') userId: string) {
-    return this.progressService.getAllTasks(userId);
+  getAllSteps(@GetUser('id') userId: string) {
+    return this.progressService.getAllSteps(userId);
   }
 
-  @Post(':taskProgressId/activities')
+  @Post(':stepProgressId/activities')
   addActivity(
     @Body() createActivityDto: CreateActivityDto,
-    @Param('taskProgressId') taskProgressId: string,
+    @Param('stepProgressId') stepProgressId: string,
     @GetUser('id') userId: string,
   ) {
     return this.progressService.addActivity(
       createActivityDto,
-      taskProgressId,
+      stepProgressId,
       userId,
     );
   }
 
-  @Get(':taskProgressId/activities')
+  @Get(':stepProgressId/activities')
   findAll(
-    @Param('taskProgressId') taskProgressId: string,
+    @Param('stepProgressId') stepProgressId: string,
     @GetUser('id') userId: string,
   ) {
-    return this.progressService.getAllActivities(userId, taskProgressId);
+    return this.progressService.getAllActivities(userId, stepProgressId);
   }
 
-  @Patch(':taskProgressId/activities/:activityId')
+  @Patch(':stepProgressId/activities/:activityId')
   update(
     @Param('activityId') activityId: string,
     @GetUser('id') userId: string,
@@ -58,7 +58,7 @@ export class ProgressController {
     );
   }
 
-  @Delete(':taskProgressId/activities/:activityId')
+  @Delete(':stepProgressId/activities/:activityId')
   remove(
     @Param('activityId') activityId: string,
     @GetUser('id') userId: string,
