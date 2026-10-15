@@ -1,0 +1,130 @@
+<div class="fixed inset-0 z-50 flex justify-end">
+  <!-- Backdrop -->
+  <button
+    type="button"
+    class="absolute inset-0 bg-black/40"
+    aria-label="Close activity drawer"
+    (click)="close()"
+  ></button>
+
+  <section
+    class="relative z-10 flex h-full w-full max-w-lg flex-col overflow-y-auto bg-base-100 p-6 shadow-xl"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="activity-title"
+  >
+    <div class="mb-6 flex items-center justify-between">
+      <h2 id="activity-title" class="text-xl font-bold">
+        @if (isCreateMode()) {
+          Log Activity
+        } @else if (isEditMode()) {
+          Edit Activity
+        } @else {
+          Activity Details
+        }
+      </h2>
+
+      <button type="button" class="btn btn-ghost btn-sm" aria-label="Close" (click)="close()">
+        ✕
+      </button>
+    </div>
+
+    <!-- View existing activity -->
+    @if (isViewMode() && activity()) {
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold">{{ activity()!.name }}</h3>
+
+        <p class="mt-4 whitespace-pre-wrap">
+          {{ activity()!.note || 'No note added.' }}
+        </p>
+
+        <div class="mt-6 flex gap-3">
+          <button type="button" class="btn btn-primary flex-1" (click)="startEditing()">
+            Edit Activity
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-error btn-outline"
+            [disabled]="deleting()"
+            (click)="deleteActivity()"
+          >
+            @if (deleting()) {
+              Deleting...
+            } @else {
+              Delete
+            }
+          </button>
+        </div>
+      </div>
+    } @else {
+      <form class="flex flex-1 flex-col" (submit)="submit($event)">
+        <!-- Journey step selector: create mode only -->
+        @if (isCreateMode()) {
+          <label class="form-control w-full">
+            <span class="label-text mb-2">Journey step</span>
+
+            <select
+              class="select select-bordered w-full"
+              [value]="selectedStepId()"
+              (change)="selectedStepId.set($any($event.target).value)"
+              required
+            >
+              <option value="" disabled>Select a step</option>
+
+              @for (journey of journeys(); track journey.id) {
+                <optgroup [label]="journey.journey.title">
+                  @for (step of journey.stepInstances; track step.id) {
+                    <option [value]="step.id">
+                      {{ step.journeyStep.title }}
+                    </option>
+                  }
+                </optgroup>
+              }
+            </select>
+          </label>
+        }
+
+        <!-- Activity name -->
+        <label class="form-control mt-4 w-full">
+          <span class="label-text mb-2">Activity name</span>
+          <input class="input input-bordered w-full" [formField]="activityForm.name" />
+        </label>
+
+        @if (activityForm.name().touched() && activityForm.name().invalid()) {
+          <p class="mt-1 text-sm text-error">Enter an activity name.</p>
+        }
+
+        <!-- Activity note -->
+        <label class="form-control mt-4 w-full">
+          <span class="label-text mb-2">Note (optional)</span>
+          <textarea
+            class="textarea textarea-bordered w-full"
+            rows="4"
+            [formField]="activityForm.note"
+          ></textarea>
+        </label>
+
+        <!-- Error message -->
+        @if (errorMessage()) {
+          <p class="mt-4 text-sm text-error">{{ errorMessage() }}</p>
+        }
+
+        <!-- Actions -->
+        <div class="mt-auto flex justify-end gap-2 pt-8">
+          <button type="button" class="btn btn-ghost" (click)="cancelEditing()">Cancel</button>
+
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            @if (saving()) {
+              Saving...
+            } @else if (isEditMode()) {
+              Save Changes
+            } @else {
+              Log Activity
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</div>

@@ -1,0 +1,154 @@
+@if (userJourney(); as journey) {
+  <div class="collapse collapse-arrow relative bg-base-100 border border-base-300 shadow-sm p-5">
+    <input type="checkbox" />
+
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm btn-square absolute left-3 top-3 z-20 text-error"
+      aria-label="Unenroll from journey"
+      title="Unenroll from journey"
+      (click)="unenroll()"
+    >
+      <fa-icon [icon]="faTrash" />
+    </button>
+
+    <!-- Journey Summary -->
+    <div class="collapse-title p-0">
+      <div class="flex items-center gap-4 p-5">
+        <!-- Journey Image -->
+        <div class="avatar">
+          <div class="w-20 rounded-xl">
+            @if (journey.journey.icon) {
+              <img [src]="journey.journey.icon" [alt]="journey.journey.title" />
+            } @else {
+              <div class="flex h-full items-center justify-center bg-base-200">
+                <span class="text-2xl">🧭</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Journey Info -->
+        <div class="flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xl font-semibold">
+              {{ journey.journey.title }}
+            </h2>
+
+            <span class="badge badge-primary badge-lg">
+              {{ completedSteps() }}/{{ totalSteps() }}
+            </span>
+          </div>
+
+          <p class="mt-1 text-sm text-base-content/70">
+            {{ journey.journey.description }}
+          </p>
+
+          <!-- Journey Status -->
+          <div class="mt-2">
+            <span
+              class="badge"
+              [class.badge-primary]="journey.status === 'IN_PROGRESS'"
+              [class.badge-success]="journey.status === 'COMPLETED'"
+              [class.badge-error]="journey.status === 'ABANDONED'"
+            >
+              {{ journey.status.replace('_', ' ') }}
+            </span>
+          </div>
+
+          <!-- Overall Progress -->
+          <div class="mt-4">
+            <progress
+              class="progress progress-primary w-full"
+              [value]="completedSteps()"
+              [max]="totalSteps() || 1"
+            ></progress>
+
+            <div class="mt-1 flex justify-between text-xs text-base-content/60">
+              <span>{{ progressPercent() }}% Complete</span>
+              <span>{{ remainingSteps() }} Remaining</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expanded Content -->
+    <div class="collapse-content pt-0">
+      <div class="divider mt-0">Journey Steps</div>
+
+      <div class="space-y-3">
+        @for (stepInstance of journey.stepInstances; track stepInstance.id) {
+          <div class="rounded-xl border border-base-300 bg-base-200 p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h3 class="font-medium">
+                  {{ stepInstance.journeyStep.title }}
+                </h3>
+
+                @if (stepInstance.journeyStep.description) {
+                  <p class="mt-1 text-sm text-base-content/70">
+                    {{ stepInstance.journeyStep.description }}
+                  </p>
+                }
+              </div>
+
+              @if (stepInstance.completed) {
+                <div class="badge badge-success">Complete</div>
+              } @else {
+                <div class="badge badge-outline">
+                  {{ stepInstance.currentCount }}/{{ stepInstance.journeyStep.targetCount }}
+                </div>
+              }
+            </div>
+
+            <!-- Step Progress -->
+            <progress
+              class="progress progress-success mt-3 w-full"
+              [value]="stepInstance.currentCount"
+              [max]="stepInstance.journeyStep.targetCount || 1"
+            ></progress>
+
+            <!-- Activity History -->
+
+            @if (stepInstance.activities?.length) {
+              <div class="mt-3 space-y-2">
+                @for (activity of stepInstance.activities; track activity.id) {
+                  <button
+                    type="button"
+                    class="block w-full rounded-lg bg-base-100 p-3 text-left text-sm transition-colors hover:bg-base-300 focus-visible:outline focus-visible:outline-primary"
+                    (click)="openActivity(activity)"
+                    [attr.aria-label]="'View activity: ' + (activity.name || 'Untitled activity')"
+                  >
+                    @if (activity.name) {
+                      <p class="font-medium">{{ activity.name }}</p>
+                    }
+
+                    @if (activity.note) {
+                      <p class="mt-1 text-base-content/70">
+                        {{ activity.note }}
+                      </p>
+                    }
+
+                    <p class="mt-1 text-xs text-base-content/50">
+                      {{ activity.createdAt | date: 'mediumDate' }}
+                    </p>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-center">
+      @if (journey.status === 'IN_PROGRESS') {
+        <button class="btn w-full btn-primary" (click)="openLogActivity()">Log Activity</button>
+      }
+      @if (journey.status === 'ABANDONED') {
+        <button class="btn w-full btn-primary" (click)="rejoin()">ReJoin Journey</button>
+      }
+    </div>
+  </div>
+}

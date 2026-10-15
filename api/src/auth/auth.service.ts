@@ -51,7 +51,7 @@ export class AuthService {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       return {
-        accessToken: this.createToken(user),
+        accessToken: this.createToken(user).accessToken,
         user: {
           id: user.id,
           name: user.name,
@@ -68,5 +68,23 @@ export class AuthService {
     const payload: JwtPayload = { id: user.id };
     const accessToken = this.jwtService.sign(payload);
     return { accessToken };
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return user;
   }
 }

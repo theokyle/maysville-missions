@@ -1,0 +1,83 @@
+<div class="flex w-full items-center justify-center px-4">
+  <div class="card w-full max-w-3xl mx-auto bg-base-100 p-8 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title justify-center text-3xl text-primary mb-4">Sign In</h2>
+
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()">
+        <!-- Email -->
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Email</legend>
+          <input
+            class="input input-bordered w-full"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            [formField]="signInForm.email"
+            [class.input-error]="signInForm.email().touched() && signInForm.email().invalid()"
+            [attr.aria-invalid]="signInForm.email().touched() && signInForm.email().invalid()"
+          />
+
+          @if (signInForm.email().touched() && signInForm.email().invalid()) {
+            <p class="text-error text-sm mt-1">
+              @for (error of signInForm.email().errors(); track error) {
+                {{ error.message }}
+              }
+            </p>
+          }
+        </fieldset>
+
+        <!-- Password -->
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Password</legend>
+          <input
+            class="input input-bordered w-full"
+            type="password"
+            placeholder="Your password"
+            autocomplete="current-password"
+            [formField]="signInForm.password"
+            [class.input-error]="signInForm.password().touched() && signInForm.password().invalid()"
+            [attr.aria-invalid]="signInForm.password().touched() && signInForm.password().invalid()"
+          />
+
+          @if (signInForm.password().touched() && signInForm.password().invalid()) {
+            <p class="text-error text-sm mt-1">
+              @for (error of signInForm.password().errors(); track error) {
+                {{ error.message }}
+              }
+            </p>
+          }
+        </fieldset>
+
+        <!-- Server error -->
+        @if (errorMessage()) {
+          <div class="alert alert-error" role="alert">
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Actions -->
+        <div class="card-actions justify-between items-center mt-4">
+          <button class="btn btn-ghost" type="button" (click)="cancel()" [disabled]="loading()">
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-primary disabled:opacity-50"
+            type="submit"
+            [disabled]="signInForm().invalid() || loading()"
+          >
+            {{ loading() ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </div>
+
+        <!-- Switch to registration -->
+        <p class="text-sm text-center mt-3">
+          Don't have an account?
+          <button class="link link-primary" type="button" (click)="createAccount()">
+            Create one
+          </button>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

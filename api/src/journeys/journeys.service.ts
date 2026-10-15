@@ -8,18 +8,19 @@ export class JourneysService {
   constructor(private prisma: PrismaService) {}
 
   create(createJourneyDto: CreateJourneyDto) {
-    const { title, description, icon, tasks } = createJourneyDto;
+    const { title, description, icon, type, steps } = createJourneyDto;
     return this.prisma.journey.create({
       data: {
         title,
         description,
         icon,
-        tasks: {
-          create: tasks ?? [],
+        type,
+        steps: {
+          create: steps ?? [],
         },
       },
       include: {
-        tasks: {
+        steps: {
           orderBy: {
             sortOrder: 'asc',
           },
@@ -31,7 +32,7 @@ export class JourneysService {
   findAll() {
     return this.prisma.journey.findMany({
       include: {
-        tasks: {
+        steps: {
           orderBy: {
             sortOrder: 'asc',
           },
@@ -46,7 +47,7 @@ export class JourneysService {
         id,
       },
       include: {
-        tasks: {
+        steps: {
           orderBy: {
             sortOrder: 'asc',
           },
@@ -62,7 +63,7 @@ export class JourneysService {
   }
 
   async update(id: string, updateJourneyDto: UpdateJourneyDto) {
-    const { title, description, icon } = updateJourneyDto;
+    const { title, description, icon, type } = updateJourneyDto;
     try {
       return await this.prisma.journey.update({
         where: { id },
@@ -70,6 +71,7 @@ export class JourneysService {
           title,
           description,
           icon,
+          type,
         },
       });
     } catch {
@@ -77,11 +79,15 @@ export class JourneysService {
     }
   }
 
-  remove(id: string) {
-    return this.prisma.journey.delete({
-      where: {
-        id,
-      },
-    });
+  async remove(id: string) {
+    try {
+      return await this.prisma.journey.delete({
+        where: {
+          id,
+        },
+      });
+    } catch {
+      throw new NotFoundException('Journey not found');
+    }
   }
 }

@@ -1,0 +1,65 @@
+@if (journey(); as journey) {
+  <div class="card bg-base-100 w-96 shadow-sm hover:shadow-lg transition-shadow">
+    <figure class="px-10 pt-10">
+      <img [src]="journey.icon" [alt]="journey.title" class="rounded-xl h-32 w-32 object-contain" />
+    </figure>
+
+    <div class="card-body">
+      <h2 class="card-title justify-center text-xl font-bold">
+        {{ journey.title }}
+      </h2>
+
+      <p class="text-base-content/70 text-sm">
+        {{ journey.description }}
+      </p>
+
+      @if (journey.steps.length) {
+        <div class="mt-4 border-t border-base-300 pt-4">
+          <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-base-content/80">
+            Included Tasks
+          </h3>
+
+          <!-- First five steps -->
+          <ul class="space-y-2">
+            @for (step of journey.steps.slice(0, 5); track step.id) {
+              <li class="flex items-start gap-2 text-sm">
+                <span class="text-success mt-0.5">✓</span>
+                <span>{{ step.title }}</span>
+              </li>
+            }
+          </ul>
+
+          <!-- Additional steps in a collapsible dropdown -->
+          @if (journey.steps.length > 5) {
+            <div class="collapse collapse-arrow mt-3 rounded-lg bg-base-200">
+              <input
+                type="checkbox"
+                [attr.aria-label]="'Show ' + (journey.steps.length - 5) + ' more tasks'"
+              />
+
+              <div class="collapse-title min-h-0 py-2 text-sm font-medium">
+                {{ journey.steps.length - 5 }} more
+                {{ journey.steps.length - 5 === 1 ? 'task' : 'tasks' }}
+              </div>
+
+              <div class="collapse-content">
+                <ul class="space-y-2">
+                  @for (step of journey.steps.slice(5); track step.id) {
+                    <li class="flex items-start gap-2 text-sm">
+                      <span class="text-success mt-0.5">✓</span>
+                      <span>{{ step.title }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="card-actions justify-center mt-6">
+        <button class="btn btn-primary w-full" (click)="enroll()">Join the Journey</button>
+      </div>
+    </div>
+  </div>
+}

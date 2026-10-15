@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -9,105 +9,146 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String    
-  name      String?
-  role      UserRole @default(USER)
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  name       String?
+  role       UserRole @default(USER)
 
-  journeys  UserJourney[]
+  journeyInstances JourneyInstance[]
+  groups           GroupMember[]
+  activities       Activity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Journey {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   title       String
   description String?
   icon        String?
+  type        JourneyType @default(INDIVIDUAL)
 
-  tasks        JourneyTask[]
-  participants UserJourney[]
+  steps     JourneyStep[]
+  instances JourneyInstance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model JourneyTask {
-  id          String   @id @default(uuid())
+model JourneyStep {
+  id          String @id @default(uuid())
   journeyId   String
-
   title       String
   description String?
-
-  /// Number of times required to complete the task
-  targetCount Int      @default(1)
-
-  /// Order in journey
+  
+  /// Number of times required to complete the step
+  targetCount Int    @default(1)
+  /// Order of the step within the journey
   sortOrder   Int
 
-  journey      Journey            @relation(fields: [journeyId], references: [id], onDelete: Cascade)
-  userProgress UserTaskProgress[]
+  journey   Journey              @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  instances JourneyStepInstance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([journeyId, sortOrder])
   @@index([journeyId])
 }
 
-model UserJourney {
-  id         String   @id @default(uuid())
-  userId     String
-  journeyId  String
+model JourneyInstance {
+  id        String @id @default(uuid())
+  journeyId String
 
-  status     JourneyStatus @default(IN_PROGRESS)
+  userId  String?
+  groupId String?
 
-  startedAt  DateTime @default(now())
-  completed Boolean @default(false)
+  status      JourneyStatus @default(IN_PROGRESS)
+  startedAt   DateTime      @default(now())
   completedAt DateTime?
 
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  journey    Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  taskProgress UserTaskProgress[]
+  stepInstances JourneyStepInstance[]
 
-  @@unique([userId, journeyId])
-  @@index([userId])
+  @@unique([journeyId, userId])
+  @@unique([journeyId, groupId])
   @@index([journeyId])
+  @@index([userId])
+  @@index([groupId])
 }
 
-model UserTaskProgress {
-  id             String   @id @default(uuid())
+model JourneyStepInstance {
+  id                String @id @default(uuid())
+  journeyInstanceId String
+  journeyStepId     String
 
-  userJourneyId  String
-  journeyTaskId  String
+  currentCount Int      @default(0)
+  completed    Boolean  @default(false)
+  completedAt  DateTime?
 
-  currentCount   Int      @default(0)
-  completed      Boolean  @default(false)
+  journeyInstance JourneyInstance @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
 
-  completedAt    DateTime?
+  journeyStep JourneyStep @relation(fields: [journeyStepId], references: [id], onDelete: Cascade)
 
-  activity      Activity[]
+  activities Activity[]
 
-  userJourney UserJourney @relation(fields: [userJourneyId], references: [id], onDelete: Cascade)
-  journeyTask JourneyTask @relation(fields: [journeyTaskId], references: [id], onDelete: Cascade)
-
-  @@unique([userJourneyId, journeyTaskId])
-  @@index([journeyTaskId])
+  @@unique([journeyInstanceId, journeyStepId])
+  @@index([journeyStepId])
 }
 
 model Activity {
-  id String @id @default(uuid())
+  id             String @id @default(uuid())
+  name           String?
+  note           String?
+  userId         String
+  stepInstanceId String
 
-  name String?
-  note String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  taskProgressId String
-
-  taskProgress UserTaskProgress @relation(fields: [taskProgressId], references: [id], onDelete: Cascade)
+  stepInstance JourneyStepInstance @relation(fields: [stepInstanceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([stepInstanceId])
+}
+
+model Group {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+
+  members         GroupMember[]
+  journeyInstances JourneyInstance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GroupMember {
+  id      String @id @default(uuid())
+  groupId String
+  userId  String
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+enum JourneyType {
+  INDIVIDUAL
+  GROUP
 }
 
 enum JourneyStatus {

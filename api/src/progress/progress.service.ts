@@ -2,59 +2,111 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
+import { JourneyStatus } from 'src/generated/prisma/client';
 
 @Injectable()
 export class ProgressService {
   constructor(private prisma: PrismaService) {}
 
-  getAllTasks(userId: string) {
-    return this.prisma.userTaskProgress.findMany({
+  /**
+   * Get all step instances for journeys the user has access to.
+   *
+   * This includes:
+   * - Individual journeys owned by the user
+   * - Group journeys belonging to groups the user is a member of
+   */
+  getAllSteps(userId: string) {
+    return this.prisma.journeyStepInstance.findMany({
       where: {
-        userJourney: {
-          userId,
+        journeyInstance: {
+          OR: [
+            {
+              userId,
+            },
+            {
+              group: {
+                members: {
+                  some: {
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      include: {
+        journeyStep: true,
+        journeyInstance: {
+          include: {
+            journey: true,
+            group: true,
+          },
         },
       },
     });
   }
 
+  /**
+   * Add an activity to a journey step.
+   *
+   * The step instance determines which journey/context
+   * the activity counts toward.
+   */
   async addActivity(
     createActivityDto: CreateActivityDto,
-    taskProgressId: string,
+    stepInstanceId: string,
     userId: string,
   ) {
     const { name, note } = createActivityDto;
 
     return this.prisma.$transaction(async (tx) => {
-      const taskProgress = await tx.userTaskProgress.findFirst({
+      const stepInstance = await tx.journeyStepInstance.findFirst({
         where: {
-          id: taskProgressId,
-          userJourney: {
-            userId,
+          id: stepInstanceId,
+          journeyInstance: {
+            OR: [
+              {
+                userId,
+              },
+              {
+                group: {
+                  members: {
+                    some: {
+                      userId,
+                    },
+                  },
+                },
+              },
+            ],
           },
         },
         include: {
-          journeyTask: true,
+          journeyStep: true,
+          journeyInstance: true,
         },
       });
 
-      if (!taskProgress) {
-        throw new NotFoundException('Task progress not found');
+      if (!stepInstance) {
+        throw new NotFoundException('Step instance not found');
       }
 
-      const nextCount = taskProgress.currentCount + 1;
-      const isComplete = nextCount >= taskProgress.journeyTask.targetCount;
+      const nextCount = stepInstance.currentCount + 1;
+
+      const isComplete = nextCount >= stepInstance.journeyStep.targetCount;
 
       const activity = await tx.activity.create({
         data: {
           name,
           note,
-          taskProgressId,
+          userId,
+          stepInstanceId,
         },
       });
 
-      await tx.userTaskProgress.update({
+      await tx.journeyStepInstance.update({
         where: {
-          id: taskProgressId,
+          id: stepInstanceId,
         },
         data: {
           currentCount: nextCount,
@@ -63,20 +115,21 @@ export class ProgressService {
         },
       });
 
-      const remainingTasks = await tx.userTaskProgress.count({
+      // Check whether all steps in the journey are now complete.
+      const remainingSteps = await tx.journeyStepInstance.count({
         where: {
-          userJourneyId: taskProgress.userJourneyId,
+          journeyInstanceId: stepInstance.journeyInstanceId,
           completed: false,
         },
       });
 
-      if (remainingTasks === 0) {
-        await tx.userJourney.update({
+      if (remainingSteps === 0) {
+        await tx.journeyInstance.update({
           where: {
-            id: taskProgress.userJourneyId,
+            id: stepInstance.journeyInstanceId,
           },
           data: {
-            completed: true,
+            status: JourneyStatus.COMPLETED,
             completedAt: new Date(),
           },
         });
@@ -86,24 +139,46 @@ export class ProgressService {
     });
   }
 
-  getAllActivities(userId: string, taskProgressId: string) {
-    return this.prisma.userTaskProgress.findFirst({
+  /**
+   * Get all activities for a particular step instance.
+   */
+  getAllActivities(userId: string, stepInstanceId: string) {
+    return this.prisma.journeyStepInstance.findFirst({
       where: {
-        id: taskProgressId,
-        userJourney: {
-          userId,
+        id: stepInstanceId,
+        journeyInstance: {
+          OR: [
+            {
+              userId,
+            },
+            {
+              group: {
+                members: {
+                  some: {
+                    userId,
+                  },
+                },
+              },
+            },
+          ],
         },
       },
       include: {
-        activity: {
+        activities: {
           orderBy: {
             createdAt: 'desc',
           },
         },
+        journeyStep: true,
       },
     });
   }
 
+  /**
+   * Update an activity.
+   *
+   * A user can only update an activity that they created.
+   */
   async updateActivity(
     activityId: string,
     updateActivityDto: UpdateActivityDto,
@@ -112,11 +187,7 @@ export class ProgressService {
     const activity = await this.prisma.activity.findFirst({
       where: {
         id: activityId,
-        taskProgress: {
-          userJourney: {
-            userId,
-          },
-        },
+        userId,
       },
     });
 
@@ -132,21 +203,22 @@ export class ProgressService {
     });
   }
 
+  /**
+   * Delete an activity and recalculate the associated
+   * step and journey completion status.
+   */
   async deleteActivity(activityId: string, userId: string) {
     return this.prisma.$transaction(async (tx) => {
       const activity = await tx.activity.findFirst({
         where: {
           id: activityId,
-          taskProgress: {
-            userJourney: {
-              userId,
-            },
-          },
+          userId,
         },
         include: {
-          taskProgress: {
+          stepInstance: {
             include: {
-              journeyTask: true,
+              journeyStep: true,
+              journeyInstance: true,
             },
           },
         },
@@ -156,51 +228,52 @@ export class ProgressService {
         throw new NotFoundException('Activity not found');
       }
 
+      const stepInstance = activity.stepInstance;
+
       await tx.activity.delete({
         where: {
           id: activityId,
         },
       });
 
-      if (
-        activity.taskProgress.completed &&
-        activity.taskProgress.currentCount - 1 <
-          activity.taskProgress.journeyTask.targetCount
-      ) {
-        await tx.userTaskProgress.update({
-          where: {
-            id: activity.taskProgressId,
-          },
-          data: {
-            currentCount: {
-              decrement: 1,
-            },
-            completed: false,
-            completedAt: null,
-          },
-        });
+      const nextCount = Math.max(0, stepInstance.currentCount - 1);
 
-        await tx.userJourney.update({
+      const isComplete = nextCount >= stepInstance.journeyStep.targetCount;
+
+      await tx.journeyStepInstance.update({
+        where: {
+          id: stepInstance.id,
+        },
+        data: {
+          currentCount: nextCount,
+          completed: isComplete,
+          completedAt: isComplete ? stepInstance.completedAt : null,
+        },
+      });
+
+      // Recalculate journey completion.
+      const remainingSteps = await tx.journeyStepInstance.count({
+        where: {
+          journeyInstanceId: stepInstance.journeyInstanceId,
+          completed: false,
+        },
+      });
+
+      if (remainingSteps > 0) {
+        await tx.journeyInstance.update({
           where: {
-            id: activity.taskProgress.userJourneyId,
+            id: stepInstance.journeyInstanceId,
           },
           data: {
-            completed: false,
+            status: JourneyStatus.IN_PROGRESS,
             completedAt: null,
-          },
-        });
-      } else {
-        await tx.userTaskProgress.update({
-          where: {
-            id: activity.taskProgressId,
-          },
-          data: {
-            currentCount: {
-              decrement: 1,
-            },
           },
         });
       }
+
+      return {
+        success: true,
+      };
     });
   }
 }
