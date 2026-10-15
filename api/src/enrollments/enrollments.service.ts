@@ -96,6 +96,7 @@ export class EnrollmentsService {
         stepInstances: {
           include: {
             journeyStep: true,
+            activities: true,
           },
           orderBy: {
             journeyStep: {

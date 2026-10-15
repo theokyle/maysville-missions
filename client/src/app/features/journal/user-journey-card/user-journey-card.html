@@ -110,10 +110,16 @@
             ></progress>
 
             <!-- Activity History -->
+
             @if (stepInstance.activities?.length) {
               <div class="mt-3 space-y-2">
                 @for (activity of stepInstance.activities; track activity.id) {
-                  <div class="rounded-lg bg-base-100 p-3 text-sm">
+                  <button
+                    type="button"
+                    class="block w-full rounded-lg bg-base-100 p-3 text-left text-sm transition-colors hover:bg-base-300 focus-visible:outline focus-visible:outline-primary"
+                    (click)="openActivity(activity)"
+                    [attr.aria-label]="'View activity: ' + (activity.name || 'Untitled activity')"
+                  >
                     @if (activity.name) {
                       <p class="font-medium">{{ activity.name }}</p>
                     }
@@ -127,7 +133,7 @@
                     <p class="mt-1 text-xs text-base-content/50">
                       {{ activity.createdAt | date: 'mediumDate' }}
                     </p>
-                  </div>
+                  </button>
                 }
               </div>
             }
@@ -138,9 +144,7 @@
 
     <div class="mt-6 flex justify-center">
       @if (journey.status === 'IN_PROGRESS') {
-        <button class="btn w-full btn-primary" (click)="openLogActivity(journey)">
-          Log Activity
-        </button>
+        <button class="btn w-full btn-primary" (click)="openLogActivity()">Log Activity</button>
       }
       @if (journey.status === 'ABANDONED') {
         <button class="btn w-full btn-primary" (click)="rejoin()">ReJoin Journey</button>

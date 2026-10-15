@@ -55,3 +55,13 @@ export interface Activity {
   stepInstanceId: string;
   createdAt: string;
 }
+
+export interface CreateActivityDto {
+  name?: string;
+  note?: string;
+}
+
+export interface UpdateActivityDto {
+  name?: string;
+  note?: string;
+}

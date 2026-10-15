@@ -1,21 +1,60 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { JournalService } from './journal-service';
-import { JourneyInstance } from '../../types/journey';
+import { Activity, JourneyInstance } from '../../types/journey';
 import { UserJourneyCard } from './user-journey-card/user-journey-card';
+import { ActivityLog } from './activity-log/activity-log';
 
 @Component({
   selector: 'app-journeys',
-  imports: [UserJourneyCard],
+  imports: [UserJourneyCard, ActivityLog],
   templateUrl: './journal.html',
 })
 export class Journal implements OnInit {
   private journalService = inject(JournalService);
+
   protected userJourneys = signal<JourneyInstance[]>([]);
 
+  // Activity drawer state
+  protected showActivityDrawer = signal(false);
+  protected selectedActivity = signal<Activity | null>(null);
+
   ngOnInit() {
-    this.journalService.getUserJourneys().subscribe((result) => {
-      this.userJourneys.set(result);
+    this.loadJourneys();
+  }
+
+  private loadJourneys() {
+    this.journalService.getUserJourneys().subscribe({
+      next: (result) => {
+        this.userJourneys.set(result);
+      },
+      error: (error) => {
+        console.error('Failed to load journeys:', error);
+      },
     });
+  }
+
+  // Open drawer to create a new activity
+  protected openNewActivity() {
+    this.selectedActivity.set(null);
+    this.showActivityDrawer.set(true);
+  }
+
+  // Open drawer to view an existing activity
+  protected openExistingActivity(activity: Activity) {
+    this.selectedActivity.set(activity);
+    this.showActivityDrawer.set(true);
+  }
+
+  // Close drawer
+  protected closeActivityDrawer() {
+    this.showActivityDrawer.set(false);
+    this.selectedActivity.set(null);
+  }
+
+  // Refresh journey data after an activity is saved
+  protected onActivitySaved() {
+    this.closeActivityDrawer();
+    this.loadJourneys();
   }
 
   enroll(journeyId: string) {}

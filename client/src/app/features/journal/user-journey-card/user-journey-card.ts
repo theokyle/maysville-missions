@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { JourneyInstance } from '../../../types/journey';
+import { Activity, JourneyInstance } from '../../../types/journey';
 import { JourneyService } from '../../journeys/journey-service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -14,6 +14,9 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 export class UserJourneyCard {
   userJourney = input<JourneyInstance>();
   private journeyService = inject(JourneyService);
+  logActivityRequested = output<void>();
+  activitySelected = output<Activity>();
+
   enrollmentChange = output<{
     journeyId: string;
     status: 'ABANDONED' | 'IN_PROGRESS';
@@ -45,10 +48,12 @@ export class UserJourneyCard {
   });
 
   // Handle logging an activity
-  openLogActivity(journey: JourneyInstance): void {
-    // TODO: Open your activity logging dialog or navigate
-    // to your activity logging form.
-    console.log('Log activity for journey instance:', journey.id);
+  openLogActivity(): void {
+    this.logActivityRequested.emit();
+  }
+
+  openActivity(activity: Activity): void {
+    this.activitySelected.emit(activity);
   }
 
   unenroll() {
