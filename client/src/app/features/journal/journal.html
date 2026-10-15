@@ -1,0 +1,53 @@
+<div class="w-full pt-10">
+  <!-- Journey cards and navigation arrows -->
+  <div class="flex items-center justify-center gap-3 md:gap-6">
+    <!-- Previous button -->
+    <button
+      class="btn btn-ghost shrink-0"
+      type="button"
+      aria-label="Previous journeys"
+      [disabled]="currentPage() === 0"
+      (click)="previousPage()"
+    >
+      <span class="text-3xl" aria-hidden="true">‹</span>
+    </button>
+
+    <!-- Journey cards -->
+    <div class="flex flex-1 flex-wrap justify-center gap-6">
+      @for (journey of visibleJourneys(); track journey.id) {
+        <user-journey-card
+          [userJourney]="journey"
+          (enrollmentChange)="updateJourneyStatus($event)"
+        />
+      }
+    </div>
+
+    <!-- Next button -->
+    <button
+      class="btn btn-ghost shrink-0"
+      type="button"
+      aria-label="Next journeys"
+      [disabled]="currentPage() >= totalPages() - 1"
+      (click)="nextPage()"
+    >
+      <span class="text-3xl" aria-hidden="true">›</span>
+    </button>
+  </div>
+
+  <!-- Pagination dots -->
+  @if (totalPages() > 1) {
+    <div class="flex items-center justify-center gap-2 pt-8" aria-label="Journey pages">
+      @for (page of pageNumbers(); track page) {
+        <button
+          type="button"
+          class="h-2.5 w-2.5 rounded-full transition-colors"
+          [class.bg-gray-500]="currentPage() === page"
+          [class.bg-gray-300]="currentPage() !== page"
+          [attr.aria-label]="'Go to page ' + (page + 1)"
+          [attr.aria-current]="currentPage() === page ? 'page' : null"
+          (click)="goToPage(page)"
+        ></button>
+      }
+    </div>
+  }
+</div>

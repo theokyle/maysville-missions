@@ -1,44 +1,50 @@
-<div class="flex justify-around pt-10">
-  @for (journey of journeys(); track journey.id) {
-    <div class="card bg-base-100 w-96 shadow-sm hover:shadow-lg transition-shadow">
-      <figure class="px-10 pt-10">
-        <img
-          src="{{ journey.icon }}"
-          alt="{{ journey.title }}"
-          class="rounded-xl h-32 w-32 object-contain"
-        />
-      </figure>
+<div class="w-full pt-10">
+  <!-- Journey cards and navigation arrows -->
+  <div class="flex items-center justify-center gap-3 md:gap-6">
+    <!-- Previous button -->
+    <button
+      class="btn btn-ghost shrink-0"
+      type="button"
+      aria-label="Previous journeys"
+      [disabled]="currentPage() === 0"
+      (click)="previousPage()"
+    >
+      <span class="text-3xl" aria-hidden="true">‹</span>
+    </button>
 
-      <div class="card-body">
-        <h2 class="card-title justify-center text-xl font-bold">
-          {{ journey.title }}
-        </h2>
+    <!-- Journey cards -->
+    <div class="flex flex-1 flex-wrap justify-center gap-6">
+      @for (journey of visibleJourneys(); track journey.id) {
+        <journey-card [journey]="journey" />
+      }
+    </div>
 
-        <p class="text-base-content/70 text-sm">
-          {{ journey.description }}
-        </p>
+    <!-- Next button -->
+    <button
+      class="btn btn-ghost shrink-0"
+      type="button"
+      aria-label="Next journeys"
+      [disabled]="currentPage() >= totalPages() - 1"
+      (click)="nextPage()"
+    >
+      <span class="text-3xl" aria-hidden="true">›</span>
+    </button>
+  </div>
 
-        @if (journey.tasks) {
-          <div class="mt-4 border-t border-base-300 pt-4">
-            <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-base-content/80">
-              Included Tasks
-            </h3>
-
-            <ul class="space-y-2">
-              @for (task of journey.tasks; track task.id) {
-                <li class="flex items-start gap-2 text-sm">
-                  <span class="text-success mt-0.5">✓</span>
-                  <span>{{ task.title }}</span>
-                </li>
-              }
-            </ul>
-          </div>
-        }
-
-        <div class="card-actions justify-center mt-6">
-          <button class="btn btn-primary w-full">Join the Journey</button>
-        </div>
-      </div>
+  <!-- Pagination dots -->
+  @if (totalPages() > 1) {
+    <div class="flex items-center justify-center gap-2 pt-8" aria-label="Journey pages">
+      @for (page of pageNumbers(); track page) {
+        <button
+          type="button"
+          class="h-2.5 w-2.5 rounded-full transition-colors"
+          [class.bg-gray-500]="currentPage() === page"
+          [class.bg-gray-300]="currentPage() !== page"
+          [attr.aria-label]="'Go to page ' + (page + 1)"
+          [attr.aria-current]="currentPage() === page ? 'page' : null"
+          (click)="goToPage(page)"
+        ></button>
+      }
     </div>
   }
 </div>

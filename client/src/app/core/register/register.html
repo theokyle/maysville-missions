@@ -1,0 +1,99 @@
+<div class="card w-full max-w-xl mx-auto bg-base-100 p-8 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title justify-center text-3xl text-primary mb-4">Create Account</h2>
+
+    <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()">
+      <!-- Email -->
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Email</legend>
+        <input
+          class="input input-bordered w-full"
+          type="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          [formField]="registerForm.email"
+          [class.input-error]="registerForm.email().invalid() && registerForm.email().touched()"
+          [attr.aria-invalid]="registerForm.email().invalid()"
+        />
+
+        @if (registerForm.email().touched() && registerForm.email().invalid()) {
+          <p class="text-error text-sm mt-1">
+            @for (error of registerForm.email().errors(); track error) {
+              {{ error.message }}
+            }
+          </p>
+        }
+      </fieldset>
+
+      <!-- Name -->
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Name</legend>
+        <input
+          class="input input-bordered w-full"
+          type="text"
+          placeholder="Your name"
+          autocomplete="name"
+          [formField]="registerForm.name"
+          [class.input-error]="registerForm.name().invalid() && registerForm.name().touched()"
+          [attr.aria-invalid]="registerForm.name().invalid()"
+        />
+
+        @if (registerForm.name().touched() && registerForm.name().invalid()) {
+          <p class="text-error text-sm mt-1">
+            @for (error of registerForm.name().errors(); track error) {
+              {{ error.message }}
+            }
+          </p>
+        }
+      </fieldset>
+
+      <!-- Password -->
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Password</legend>
+        <input
+          class="input input-bordered w-full"
+          type="password"
+          placeholder="At least 8 characters"
+          autocomplete="new-password"
+          [formField]="registerForm.password"
+          [class.input-error]="
+            registerForm.password().invalid() && registerForm.password().touched()
+          "
+          [attr.aria-invalid]="registerForm.password().invalid()"
+        />
+
+        <p class="label text-base-content/60">Use at least 8 characters.</p>
+
+        @if (registerForm.password().touched() && registerForm.password().invalid()) {
+          <p class="text-error text-sm mt-1">
+            @for (error of registerForm.password().errors(); track error) {
+              {{ error.message }}
+            }
+          </p>
+        }
+      </fieldset>
+
+      <!-- Server error -->
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="card-actions justify-end mt-4">
+        <button class="btn btn-ghost" type="button" (click)="cancel()" [disabled]="loading()">
+          Cancel
+        </button>
+
+        <button
+          class="btn btn-primary disabled:opacity-50"
+          type="submit"
+          [disabled]="registerForm().invalid() || loading()"
+        >
+          {{ loading() ? 'Creating account...' : 'Sign Up' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
