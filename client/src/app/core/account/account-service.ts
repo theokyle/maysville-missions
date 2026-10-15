@@ -15,7 +15,7 @@ interface AuthResponse {
 export class AccountService {
   private http = inject(HttpClient);
   currentUser = signal<User | null>(null);
-  private baseUrl = environment.base_url;
+  private baseUrl = environment.api_url;
 
   setSession(response: AuthResponse) {
     localStorage.setItem('accessToken', response.accessToken);

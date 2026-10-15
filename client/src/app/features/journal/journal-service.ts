@@ -10,7 +10,7 @@ import { CreateActivityDto, UpdateActivityDto, Activity } from '../../types/jour
 })
 export class JournalService {
   private http = inject(HttpClient);
-  private baseUrl = environment.base_url;
+  private baseUrl = environment.api_url;
 
   getUserJourneys(): Observable<JourneyInstance[]> {
     return this.http.get<JourneyInstance[]>(`${this.baseUrl}/me/journeys`, {});
