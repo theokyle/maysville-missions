@@ -8,7 +8,7 @@ import { environment } from '../../../environments/environment.development';
 })
 export class JourneyService {
   private http = inject(HttpClient);
-  private baseUrl = environment.base_url;
+  private baseUrl = environment.api_url;
 
   getJourneys() {
     return this.http.get<Journey[]>(this.baseUrl + '/journeys');
