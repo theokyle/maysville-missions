@@ -60,7 +60,7 @@ export class Journal implements OnInit {
   enroll(journeyId: string) {}
 
   protected currentPage = signal(0);
-  protected pageSize = 3;
+  protected pageSize = 6;
 
   protected totalPages = computed(() => Math.ceil(this.userJourneys().length / this.pageSize));
 
@@ -84,6 +84,13 @@ export class Journal implements OnInit {
   }
 
   updateJourneyStatus(event: { journeyId: string; status: 'ABANDONED' | 'IN_PROGRESS' }) {
+    if (event.status === 'ABANDONED') {
+      this.userJourneys.update((journeys) =>
+        journeys.filter((journey) => journey.journeyId !== event.journeyId),
+      );
+      return;
+    }
+
     this.userJourneys.update((journeys) =>
       journeys.map((journey) =>
         journey.journeyId === event.journeyId ? { ...journey, status: event.status } : journey,

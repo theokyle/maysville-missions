@@ -61,6 +61,12 @@ export class UserJourneyCard {
 
     if (!journey) return;
 
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${journey.journey.title}" from your journal? This action cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
     this.journeyService.unenroll(journey.journeyId).subscribe({
       next: () => {
         this.enrollmentChange.emit({
@@ -69,7 +75,7 @@ export class UserJourneyCard {
         });
       },
       error: (error) => {
-        console.error('Failed to abandon journey', error);
+        console.error('Failed to delete journey enrollment:', error);
       },
     });
   }
