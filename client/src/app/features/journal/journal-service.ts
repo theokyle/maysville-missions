@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import { JourneyInstance } from '../../types/journey';
 import { CreateActivityDto, UpdateActivityDto, Activity } from '../../types/journey';
