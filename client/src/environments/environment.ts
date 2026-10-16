@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  api_url: 'https://maysville-missions.netlify.app/',
+  api_url: 'https://maysville-missions.netlify.app',
 };
