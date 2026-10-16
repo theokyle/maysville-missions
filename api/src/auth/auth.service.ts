@@ -30,7 +30,7 @@ export class AuthService {
     });
 
     return {
-      accessToken: this.createToken(user),
+      accessToken: this.createToken(user).accessToken,
       user: {
         id: user.id,
         name: user.name,

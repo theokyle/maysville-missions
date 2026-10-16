@@ -72,4 +72,8 @@ export class AccountService {
       }),
     );
   }
+
+  isAuthenticated() {
+    return !!this.currentUser();
+  }
 }

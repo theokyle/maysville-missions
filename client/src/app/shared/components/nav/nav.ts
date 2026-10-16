@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/account/account-service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
@@ -13,6 +13,7 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 export class Nav {
   private accountService = inject(AccountService);
   faUser = faUser;
+  router = inject(Router);
 
   currentUser = this.accountService.currentUser;
 
@@ -36,5 +37,6 @@ export class Nav {
 
   logout() {
     this.accountService.signout();
+    this.router.navigate(['/']);
   }
 }
