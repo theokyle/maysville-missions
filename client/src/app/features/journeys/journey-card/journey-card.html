@@ -58,7 +58,15 @@
       }
 
       <div class="card-actions justify-center mt-6">
-        <button class="btn btn-primary w-full" (click)="enroll()">Join the Journey</button>
+        <button
+          class="btn w-full"
+          [class.btn-primary]="!isEnrolled(journey.id)"
+          [class.btn-disabled]="isEnrolled(journey.id)"
+          [disabled]="isEnrolled(journey.id)"
+          (click)="enroll(journey.id)"
+        >
+          {{ isEnrolled(journey.id) ? 'Already Enrolled' : 'Enroll' }}
+        </button>
       </div>
     </div>
   </div>

@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { JourneyService } from './journey-service';
 import { Journey } from '../../types/journey';
 import { JourneyCard } from './journey-card/journey-card';
+import { JournalService } from '../journal/journal-service';
 
 @Component({
   selector: 'app-journeys',
@@ -17,8 +18,6 @@ export class Journeys implements OnInit {
       this.journeys.set(result);
     });
   }
-
-  enroll(journeyId: string) {}
 
   protected currentPage = signal(0);
   protected pageSize = 3;

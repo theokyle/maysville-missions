@@ -19,7 +19,7 @@ export class JourneyService {
   }
 
   unenroll(journeyId: string) {
-    return this.http.patch(`${this.baseUrl}/me/${journeyId}`, { status: 'ABANDONED' });
+    return this.http.delete(`${this.baseUrl}/me/${journeyId}`, {});
   }
 
   rejoin(journeyId: string) {
