@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { ProgressModule } from './progress/progress.module';
 import { GroupsModule } from './groups/groups.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { GroupsModule } from './groups/groups.module';
     EnrollmentsModule,
     ProgressModule,
     GroupsModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,27 +8,40 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// USER
+// ============================================
+
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  password   String
-  name       String?
-  role       UserRole @default(USER)
+  id       String   @id @default(uuid())
+  email    String   @unique
+  password String
+  name     String?
+  role     UserRole @default(USER)
 
   journeyInstances JourneyInstance[]
   groups           GroupMember[]
   activities       Activity[]
+  journeyMessages  JourneyMessage[]
+  stepInstances    JourneyStepInstance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+// ============================================
+// JOURNEY DEFINITIONS
+// ============================================
+
 model Journey {
   id          String      @id @default(uuid())
-  title       String
+  title       String      @unique
   description String?
   icon        String?
   type        JourneyType @default(INDIVIDUAL)
+
+  // Introductory video for the journey
+  videoUrl String?
 
   steps     JourneyStep[]
   instances JourneyInstance[]
@@ -38,18 +51,30 @@ model Journey {
 }
 
 model JourneyStep {
-  id          String @id @default(uuid())
-  journeyId   String
+  id        String @id @default(uuid())
+  journeyId String
+
   title       String
   description String?
-  
-  /// Number of times required to complete the step
-  targetCount Int    @default(1)
-  /// Order of the step within the journey
-  sortOrder   Int
 
-  journey   Journey              @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+  // Number of times required to complete the step
+  targetCount Int @default(1)
+
+  // Order within the journey
+  sortOrder Int
+
+  // Optional instructional video
+  videoUrl String?
+
+  // Prompt displayed when contributing to group discussion
+  groupChatPrompt String?
+
+  // Whether a group contribution is required before completion
+  requiresGroupPost Boolean @default(false)
+
+  journey   Journey               @relation(fields: [journeyId], references: [id], onDelete: Cascade)
   instances JourneyStepInstance[]
+  messages  JourneyMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,10 +83,15 @@ model JourneyStep {
   @@index([journeyId])
 }
 
+// ============================================
+// JOURNEY PARTICIPATION
+// ============================================
+
 model JourneyInstance {
   id        String @id @default(uuid())
   journeyId String
 
+  // Individual journey OR group journey
   userId  String?
   groupId String?
 
@@ -73,7 +103,11 @@ model JourneyInstance {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
+  // Individual progress records for each participant
   stepInstances JourneyStepInstance[]
+
+  // Shared discussion for this journey instance
+  messages JourneyMessage[]
 
   @@unique([journeyId, userId])
   @@unique([journeyId, groupId])
@@ -82,34 +116,45 @@ model JourneyInstance {
   @@index([groupId])
 }
 
+// ============================================
+// INDIVIDUAL STEP PROGRESS
+// ============================================
+
 model JourneyStepInstance {
   id                String @id @default(uuid())
   journeyInstanceId String
   journeyStepId     String
+  userId            String
 
-  currentCount Int      @default(0)
-  completed    Boolean  @default(false)
+  currentCount Int       @default(0)
+  completed    Boolean   @default(false)
   completedAt  DateTime?
 
   journeyInstance JourneyInstance @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
+  journeyStep     JourneyStep     @relation(fields: [journeyStepId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  journeyStep JourneyStep @relation(fields: [journeyStepId], references: [id], onDelete: Cascade)
-
+  // Private activity records and reflections
   activities Activity[]
 
-  @@unique([journeyInstanceId, journeyStepId])
+  @@unique([journeyInstanceId, journeyStepId, userId])
   @@index([journeyStepId])
+  @@index([userId])
+  @@index([journeyInstanceId])
 }
 
+// ============================================
+// ACTIVITIES / PRIVATE REFLECTIONS
+// ============================================
+
 model Activity {
-  id             String @id @default(uuid())
+  id             String  @id @default(uuid())
   name           String?
   note           String?
   userId         String
   stepInstanceId String
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   stepInstance JourneyStepInstance @relation(fields: [stepInstanceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -118,12 +163,16 @@ model Activity {
   @@index([stepInstanceId])
 }
 
+// ============================================
+// GROUPS
+// ============================================
+
 model Group {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
 
-  members         GroupMember[]
+  members          GroupMember[]
   journeyInstances JourneyInstance[]
 
   createdAt DateTime @default(now())
@@ -136,8 +185,7 @@ model GroupMember {
   userId  String
 
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   joinedAt DateTime @default(now())
 
@@ -145,6 +193,50 @@ model GroupMember {
   @@index([groupId])
   @@index([userId])
 }
+
+// ============================================
+// JOURNEY MESSAGE BOARD
+// ============================================
+
+model JourneyMessage {
+  id String @id @default(uuid())
+
+  // Journey instance this message belongs to
+  journeyInstanceId String
+
+  // User who created the message
+  userId String
+
+  // Optional journey step association
+  // Null = general journey discussion
+  journeyStepId String?
+
+  // Optional parent message for threaded replies
+  parentId String?
+
+  // Message content
+  content String @db.Text
+
+  journeyInstance JourneyInstance @relation(fields: [journeyInstanceId], references: [id], onDelete: Cascade)
+  author          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journeyStep     JourneyStep?    @relation(fields: [journeyStepId], references: [id], onDelete: SetNull)
+
+  // Threaded replies
+  parent  JourneyMessage?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies JourneyMessage[] @relation("MessageReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([journeyInstanceId, createdAt])
+  @@index([journeyInstanceId, journeyStepId, createdAt])
+  @@index([userId, journeyInstanceId, journeyStepId])
+  @@index([parentId])
+}
+
+// ============================================
+// ENUMS
+// ============================================
 
 enum JourneyType {
   INDIVIDUAL

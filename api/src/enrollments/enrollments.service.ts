@@ -1,26 +1,44 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
+
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EnrollmentStatusDto } from './dto/enrollment-status.dto';
-import { JourneyType } from 'src/generated/prisma/client';
+import { UpdateJourneyStatusDto } from './dto/enrollment-status.dto';
+
+import {
+  JourneyStatus,
+  JourneyType,
+  Prisma,
+} from 'src/generated/prisma/client';
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'P2002'
+  );
+}
 
 @Injectable()
 export class EnrollmentsService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Enroll a user in an individual journey.
-   */
+  // --------------------------------------------------
+  // INDIVIDUAL ENROLLMENT
+  // --------------------------------------------------
+
   async enroll(userId: string, journeyId: string) {
     const journey = await this.prisma.journey.findUnique({
-      where: {
-        id: journeyId,
-      },
+      where: { id: journeyId },
       include: {
-        steps: true,
+        steps: {
+          orderBy: { sortOrder: 'asc' },
+        },
       },
     });
 
@@ -29,71 +47,76 @@ export class EnrollmentsService {
     }
 
     if (journey.type !== JourneyType.INDIVIDUAL) {
-      throw new ConflictException('This journey is only available to groups');
+      throw new BadRequestException('This journey is designed for groups');
     }
 
-    const existing = await this.prisma.journeyInstance.findUnique({
-      where: {
-        journeyId_userId: {
-          journeyId,
-          userId,
-        },
-      },
-    });
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const instance = await tx.journeyInstance.create({
+          data: {
+            journeyId,
+            userId,
+          },
+        });
 
-    if (existing) {
-      throw new ConflictException('Already enrolled in this journey');
-    }
+        if (journey.steps.length > 0) {
+          await tx.journeyStepInstance.createMany({
+            data: journey.steps.map((step) => ({
+              journeyInstanceId: instance.id,
+              journeyStepId: step.id,
+              userId,
+              currentCount: 0,
+              completed: false,
+            })),
+          });
+        }
 
-    return this.prisma.$transaction(async (tx) => {
-      const journeyInstance = await tx.journeyInstance.create({
-        data: {
-          userId,
-          journeyId,
-        },
-      });
-
-      await tx.journeyStepInstance.createMany({
-        data: journey.steps.map((step) => ({
-          journeyInstanceId: journeyInstance.id,
-          journeyStepId: step.id,
-          currentCount: 0,
-          completed: false,
-        })),
-      });
-
-      return tx.journeyInstance.findUnique({
-        where: {
-          id: journeyInstance.id,
-        },
-        include: {
-          journey: true,
-          stepInstances: {
-            include: {
-              journeyStep: true,
+        return tx.journeyInstance.findUnique({
+          where: { id: instance.id },
+          include: {
+            journey: {
+              include: {
+                steps: {
+                  orderBy: { sortOrder: 'asc' },
+                },
+              },
             },
-            orderBy: {
-              journeyStep: {
-                sortOrder: 'asc',
+            stepInstances: {
+              where: { userId },
+              include: {
+                journeyStep: true,
+                activities: true,
               },
             },
           },
-        },
+        });
       });
-    });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ConflictException('You are already enrolled in this journey');
+      }
+
+      throw error;
+    }
   }
 
-  /**
-   * Get all individual journeys for a user.
-   */
-  findUserJourneys(userId: string) {
+  // --------------------------------------------------
+  // INDIVIDUAL JOURNEY RETRIEVAL
+  // --------------------------------------------------
+
+  async findUserJourneys(userId: string) {
     return this.prisma.journeyInstance.findMany({
-      where: {
-        userId,
-      },
+      where: { userId },
       include: {
-        journey: true,
+        journey: {
+          include: {
+            steps: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
         stepInstances: {
+          where: { userId },
           include: {
             journeyStep: true,
             activities: true,
@@ -111,11 +134,8 @@ export class EnrollmentsService {
     });
   }
 
-  /**
-   * Get a specific individual journey for a user.
-   */
-  findUserJourney(userId: string, journeyId: string) {
-    return this.prisma.journeyInstance.findUnique({
+  async findUserJourney(userId: string, journeyId: string) {
+    const instance = await this.prisma.journeyInstance.findUnique({
       where: {
         journeyId_userId: {
           journeyId,
@@ -123,10 +143,18 @@ export class EnrollmentsService {
         },
       },
       include: {
-        journey: true,
+        journey: {
+          include: {
+            steps: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
         stepInstances: {
+          where: { userId },
           include: {
             journeyStep: true,
+            activities: true,
           },
           orderBy: {
             journeyStep: {
@@ -136,50 +164,68 @@ export class EnrollmentsService {
         },
       },
     });
+
+    if (!instance) {
+      throw new NotFoundException('Journey enrollment not found');
+    }
+
+    return instance;
   }
 
-  /**
-   * Update the status of a user's journey.
-   */
+  // --------------------------------------------------
+  // INDIVIDUAL JOURNEY STATUS
+  // --------------------------------------------------
+
   async updateStatus(
     userId: string,
     journeyId: string,
-    enrollmentStatusDto: EnrollmentStatusDto,
+    dto: UpdateJourneyStatusDto,
   ) {
-    const { status } = enrollmentStatusDto;
-
-    const journeyInstance = await this.prisma.journeyInstance.findUnique({
+    const instance = await this.prisma.journeyInstance.findUnique({
       where: {
         journeyId_userId: {
           journeyId,
           userId,
         },
       },
+      include: {
+        stepInstances: {
+          where: { userId },
+        },
+      },
     });
 
-    if (!journeyInstance) {
+    if (!instance) {
       throw new NotFoundException('Journey enrollment not found');
+    }
+
+    if (dto.status === JourneyStatus.COMPLETED) {
+      const allStepsCompleted = instance.stepInstances.every(
+        (step) => step.completed,
+      );
+
+      if (!allStepsCompleted) {
+        throw new BadRequestException(
+          'All journey steps must be completed before completing the journey',
+        );
+      }
     }
 
     return this.prisma.journeyInstance.update({
-      where: {
-        id: journeyInstance.id,
-      },
+      where: { id: instance.id },
       data: {
-        status,
-        completedAt: status === 'COMPLETED' ? new Date() : null,
+        status: dto.status,
+        completedAt: dto.status === JourneyStatus.COMPLETED ? new Date() : null,
       },
     });
   }
 
-  /**
-   * Remove a user's journey enrollment.
-   *
-   * Because JourneyStepInstance and Activity use cascading deletes,
-   * removing the JourneyInstance will also remove its progress and activities.
-   */
+  // --------------------------------------------------
+  // INDIVIDUAL JOURNEY REMOVAL
+  // --------------------------------------------------
+
   async remove(userId: string, journeyId: string) {
-    const journeyInstance = await this.prisma.journeyInstance.findUnique({
+    const instance = await this.prisma.journeyInstance.findUnique({
       where: {
         journeyId_userId: {
           journeyId,
@@ -188,29 +234,157 @@ export class EnrollmentsService {
       },
     });
 
-    if (!journeyInstance) {
+    if (!instance) {
       throw new NotFoundException('Journey enrollment not found');
     }
 
-    return this.prisma.journeyInstance.delete({
-      where: {
-        id: journeyInstance.id,
-      },
+    await this.prisma.journeyInstance.delete({
+      where: { id: instance.id },
     });
+
+    return { success: true };
   }
 
-  async joinGroup(userId: string, groupId: string) {
-    const group = await this.prisma.group.findUnique({
-      where: {
-        id: groupId,
-      },
-    });
+  // --------------------------------------------------
+  // GROUP JOURNEY ENROLLMENT
+  // --------------------------------------------------
 
-    if (!group) {
-      throw new NotFoundException('Group not found');
+  async enrollGroup(userId: string, groupId: string, journeyId: string) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // Verify the journey exists and is a group journey.
+        const journey = await tx.journey.findUnique({
+          where: { id: journeyId },
+          include: {
+            steps: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        });
+
+        if (!journey) {
+          throw new NotFoundException('Journey not found');
+        }
+
+        if (journey.type !== JourneyType.GROUP) {
+          throw new BadRequestException(
+            'This journey is not designed for groups',
+          );
+        }
+
+        // Verify the group exists and retrieve its members.
+        const group = await tx.group.findUnique({
+          where: { id: groupId },
+          include: { members: true },
+        });
+
+        if (!group) {
+          throw new NotFoundException('Group not found');
+        }
+
+        // Verify the requesting user belongs to the group.
+        const membership = await tx.groupMember.findUnique({
+          where: {
+            groupId_userId: {
+              groupId,
+              userId,
+            },
+          },
+        });
+
+        if (!membership) {
+          throw new ForbiddenException(
+            'You must be a group member to enroll this group in a journey',
+          );
+        }
+
+        // Create one shared enrollment for the group.
+        const instance = await tx.journeyInstance.create({
+          data: {
+            journeyId,
+            groupId,
+          },
+        });
+
+        // Create individual progress records for every member and step.
+        const progressRecords = group.members.flatMap((member) =>
+          journey.steps.map((step) => ({
+            journeyInstanceId: instance.id,
+            journeyStepId: step.id,
+            userId: member.userId,
+            currentCount: 0,
+            completed: false,
+          })),
+        );
+
+        if (progressRecords.length > 0) {
+          await tx.journeyStepInstance.createMany({
+            data: progressRecords,
+          });
+        }
+
+        // Return the completed enrollment structure.
+        return tx.journeyInstance.findUnique({
+          where: { id: instance.id },
+          include: {
+            journey: {
+              include: {
+                steps: {
+                  orderBy: { sortOrder: 'asc' },
+                },
+              },
+            },
+            group: {
+              include: {
+                members: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            stepInstances: {
+              include: {
+                journeyStep: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ConflictException(
+          'This group is already enrolled in this journey',
+        );
+      }
+
+      throw error;
     }
+  }
 
-    const existing = await this.prisma.groupMember.findUnique({
+  // --------------------------------------------------
+  // INITIALIZE PROGRESS FOR NEW GROUP MEMBERS
+  // Called by GroupsService when a user joins a group.
+  // --------------------------------------------------
+
+  async initializeGroupJourneyProgress(
+    tx: Prisma.TransactionClient,
+    groupId: string,
+    userId: string,
+  ) {
+    const membership = await tx.groupMember.findUnique({
       where: {
         groupId_userId: {
           groupId,
@@ -219,22 +393,194 @@ export class EnrollmentsService {
       },
     });
 
-    if (existing) {
-      throw new ConflictException('Already a member of this group');
+    if (!membership) {
+      throw new BadRequestException(
+        'User must be a group member to participate in group journeys',
+      );
     }
 
-    return this.prisma.groupMember.create({
-      data: {
+    const groupJourneys = await tx.journeyInstance.findMany({
+      where: {
         groupId,
-        userId,
+        status: JourneyStatus.IN_PROGRESS,
       },
       include: {
+        journey: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    });
+
+    for (const instance of groupJourneys) {
+      if (instance.journey.steps.length === 0) {
+        continue;
+      }
+
+      await tx.journeyStepInstance.createMany({
+        data: instance.journey.steps.map((step) => ({
+          journeyInstanceId: instance.id,
+          journeyStepId: step.id,
+          userId,
+          currentCount: 0,
+          completed: false,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  // --------------------------------------------------
+  // GROUP JOURNEY RETRIEVAL
+  // --------------------------------------------------
+
+  async findUserGroupJourneys(userId: string) {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+      select: { groupId: true },
+    });
+
+    const groupIds = memberships.map((membership) => membership.groupId);
+
+    if (groupIds.length === 0) {
+      return [];
+    }
+
+    return this.prisma.journeyInstance.findMany({
+      where: {
+        groupId: {
+          in: groupIds,
+        },
+      },
+      include: {
+        journey: {
+          include: {
+            steps: {
+              orderBy: { sortOrder: 'asc' },
+            },
+          },
+        },
         group: true,
+        stepInstances: {
+          where: { userId },
+          include: {
+            journeyStep: true,
+            activities: true,
+          },
+          orderBy: {
+            journeyStep: {
+              sortOrder: 'asc',
+            },
+          },
+        },
+      },
+      orderBy: {
+        startedAt: 'desc',
       },
     });
   }
 
-  async leaveGroup(userId: string, groupId: string) {
+  // --------------------------------------------------
+  // GROUP JOURNEY STATUS
+  // --------------------------------------------------
+
+  async updateGroupStatus(
+    groupId: string,
+    journeyId: string,
+    dto: UpdateJourneyStatusDto,
+  ) {
+    const instance = await this.prisma.journeyInstance.findUnique({
+      where: {
+        journeyId_groupId: {
+          journeyId,
+          groupId,
+        },
+      },
+      include: {
+        journey: {
+          include: {
+            steps: true,
+          },
+        },
+        group: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!instance) {
+      throw new NotFoundException('Group journey enrollment not found');
+    }
+
+    if (!instance.group) {
+      throw new BadRequestException(
+        'This journey enrollment is not associated with a group',
+      );
+    }
+
+    if (dto.status === JourneyStatus.COMPLETED) {
+      const memberIds = instance.group.members.map((member) => member.userId);
+
+      if (memberIds.length === 0) {
+        throw new BadRequestException(
+          'A group must have members before completing a journey',
+        );
+      }
+
+      const expectedProgressCount =
+        memberIds.length * instance.journey.steps.length;
+
+      const completedProgressCount =
+        await this.prisma.journeyStepInstance.count({
+          where: {
+            journeyInstanceId: instance.id,
+            userId: { in: memberIds },
+            completed: true,
+          },
+        });
+
+      if (completedProgressCount !== expectedProgressCount) {
+        throw new BadRequestException(
+          'All current group members must complete every journey step before the group journey can be completed',
+        );
+      }
+    }
+
+    return this.prisma.journeyInstance.update({
+      where: { id: instance.id },
+      data: {
+        status: dto.status,
+        completedAt: dto.status === JourneyStatus.COMPLETED ? new Date() : null,
+      },
+    });
+  }
+
+  // --------------------------------------------------
+  // GROUP JOURNEY REMOVAL
+  // --------------------------------------------------
+
+  async removeGroupEnrollment(
+    userId: string,
+    groupId: string,
+    journeyId: string,
+  ) {
+    const instance = await this.prisma.journeyInstance.findUnique({
+      where: {
+        journeyId_groupId: {
+          journeyId,
+          groupId,
+        },
+      },
+    });
+
+    if (!instance) {
+      throw new NotFoundException('Group journey enrollment not found');
+    }
+
+    // Verify the requesting user is a current group member
     const membership = await this.prisma.groupMember.findUnique({
       where: {
         groupId_userId: {
@@ -245,117 +591,15 @@ export class EnrollmentsService {
     });
 
     if (!membership) {
-      throw new NotFoundException('Group membership not found');
+      throw new ForbiddenException(
+        'You must be a group member to remove this journey enrollment',
+      );
     }
 
-    return this.prisma.groupMember.delete({
-      where: {
-        groupId_userId: {
-          groupId,
-          userId,
-        },
-      },
-    });
-  }
-
-  async enrollGroup(groupId: string, journeyId: string) {
-    const journey = await this.prisma.journey.findUnique({
-      where: {
-        id: journeyId,
-      },
-      include: {
-        steps: true,
-      },
+    await this.prisma.journeyInstance.delete({
+      where: { id: instance.id },
     });
 
-    if (!journey) {
-      throw new NotFoundException('Journey not found');
-    }
-
-    if (journey.type !== JourneyType.GROUP) {
-      throw new ConflictException('This journey is not available to groups');
-    }
-
-    const group = await this.prisma.group.findUnique({
-      where: {
-        id: groupId,
-      },
-    });
-
-    if (!group) {
-      throw new NotFoundException('Group not found');
-    }
-
-    const existing = await this.prisma.journeyInstance.findUnique({
-      where: {
-        journeyId_groupId: {
-          journeyId,
-          groupId,
-        },
-      },
-    });
-
-    if (existing) {
-      throw new ConflictException('Group is already enrolled in this journey');
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const journeyInstance = await tx.journeyInstance.create({
-        data: {
-          groupId,
-          journeyId,
-        },
-      });
-
-      await tx.journeyStepInstance.createMany({
-        data: journey.steps.map((step) => ({
-          journeyInstanceId: journeyInstance.id,
-          journeyStepId: step.id,
-          currentCount: 0,
-          completed: false,
-        })),
-      });
-
-      return tx.journeyInstance.findUnique({
-        where: {
-          id: journeyInstance.id,
-        },
-        include: {
-          journey: true,
-          group: true,
-          stepInstances: {
-            include: {
-              journeyStep: true,
-            },
-            orderBy: {
-              journeyStep: {
-                sortOrder: 'asc',
-              },
-            },
-          },
-        },
-      });
-    });
-  }
-
-  async removeGroupEnrollment(groupId: string, journeyId: string) {
-    const journeyInstance = await this.prisma.journeyInstance.findUnique({
-      where: {
-        journeyId_groupId: {
-          journeyId,
-          groupId,
-        },
-      },
-    });
-
-    if (!journeyInstance) {
-      throw new NotFoundException('Group journey enrollment not found');
-    }
-
-    return this.prisma.journeyInstance.delete({
-      where: {
-        id: journeyInstance.id,
-      },
-    });
+    return { success: true };
   }
 }
