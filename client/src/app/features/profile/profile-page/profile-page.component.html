@@ -1,0 +1,50 @@
+<section class="mx-auto max-w-3xl space-y-6">
+  <header>
+    <h1 class="text-3xl font-bold">Your Profile</h1>
+    <p class="mt-2 text-base-content/60">View your account information.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (user(); as currentUser) {
+    <div class="rounded-xl border border-base-300 bg-base-100 p-6">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary"
+        >
+          {{ (currentUser.name || currentUser.email).charAt(0).toUpperCase() }}
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold">
+            {{ currentUser.name || 'Maysville Missions Member' }}
+          </h2>
+          <p class="text-sm text-base-content/60">
+            {{ currentUser.email }}
+          </p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="space-y-4">
+        <div>
+          <p class="text-xs font-semibold uppercase text-base-content/50">Name</p>
+          <p class="mt-1">{{ currentUser.name || 'Not provided' }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs font-semibold uppercase text-base-content/50">Email</p>
+          <p class="mt-1">{{ currentUser.email }}</p>
+        </div>
+
+        <div>
+          <p class="text-xs font-semibold uppercase text-base-content/50">Account role</p>
+          <p class="mt-1">{{ currentUser.role }}</p>
+        </div>
+      </div>
+    </div>
+  }
+</section>

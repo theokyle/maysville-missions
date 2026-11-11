@@ -1,0 +1,32 @@
+<section class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-bold">Recent Activity</h2>
+    <a routerLink="/journal" class="link link-primary text-sm"> View journal </a>
+  </div>
+
+  @if (activities().length) {
+    <div class="divide-y divide-base-300 rounded-xl border border-base-300 bg-base-100">
+      @for (activity of activities(); track activity.id) {
+        <div class="p-4">
+          <p class="font-medium">
+            {{ activity.name || 'Activity recorded' }}
+          </p>
+
+          @if (activity.note) {
+            <p class="mt-1 text-sm text-base-content/60">
+              {{ activity.note }}
+            </p>
+          }
+
+          <p class="mt-2 text-xs text-base-content/50">
+            {{ activity.createdAt | date: 'medium' }}
+          </p>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="rounded-xl bg-base-100 p-5 text-sm text-base-content/60">
+      Your recent activities will appear here.
+    </p>
+  }
+</section>

@@ -1,0 +1,109 @@
+<div class="min-h-screen flex items-center justify-center bg-base-200 px-4 py-12">
+  <div class="w-full max-w-md">
+    <!-- Branding -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-primary">Maysville Missions</h1>
+
+      <p class="mt-3 text-base-content/70">Find your way to make a difference.</p>
+    </div>
+
+    <!-- Authentication Card -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-8">
+        <div class="mb-6">
+          <h2 class="text-2xl font-semibold">Welcome</h2>
+          <p class="text-base-content/60 mt-1">
+            Sign in or create an account to begin your journey.
+          </p>
+        </div>
+
+        <form (ngSubmit)="onSignIn()" class="space-y-5">
+          <!-- Name -->
+          <div class="form-control">
+            <label for="name" class="label">
+              <span class="label-text font-medium"> Name </span>
+              <span class="label-text-alt text-base-content/50"> Required for registration </span>
+            </label>
+
+            <input
+              id="name"
+              name="name"
+              type="text"
+              class="input input-bordered w-full"
+              placeholder="Your name"
+              autocomplete="name"
+              [(ngModel)]="name"
+            />
+          </div>
+
+          <!-- Email -->
+          <div class="form-control">
+            <label for="email" class="label">
+              <span class="label-text font-medium"> Email address </span>
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              class="input input-bordered w-full"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+              [(ngModel)]="email"
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="form-control">
+            <label for="password" class="label">
+              <span class="label-text font-medium"> Password </span>
+            </label>
+
+            <input
+              id="password"
+              name="password"
+              type="password"
+              class="input input-bordered w-full"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+              [(ngModel)]="password"
+            />
+          </div>
+
+          <!-- Error -->
+          @if (error()) {
+            <div class="alert alert-error text-sm">
+              {{ error() }}
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <button type="submit" class="btn btn-primary" [disabled]="loading()">
+              @if (loadingAction() === 'signin') {
+                <span class="loading loading-spinner loading-sm"></span>
+              }
+              Sign In
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline btn-primary"
+              [disabled]="loading()"
+              (click)="onRegister()"
+            >
+              @if (loadingAction() === 'register') {
+                <span class="loading loading-spinner loading-sm"></span>
+              }
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center text-sm text-base-content/50 mt-8">Maysville Missions</p>
+  </div>
+</div>

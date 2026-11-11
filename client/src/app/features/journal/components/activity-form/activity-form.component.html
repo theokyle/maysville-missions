@@ -1,0 +1,68 @@
+<form (ngSubmit)="submit()" class="space-y-4">
+  <div class="form-control w-full">
+    <label class="label">
+      <span class="label-text font-medium">Journey step</span>
+    </label>
+
+    <select
+      class="select select-bordered w-full"
+      [ngModel]="selectedStepInstanceId()"
+      (ngModelChange)="selectedStepInstanceId.set($event)"
+      name="stepInstanceId"
+      [disabled]="!!activity()"
+      required
+    >
+      <option value="" disabled>Select a journey step</option>
+
+      @for (step of steps(); track step.id) {
+        <option [value]="step.id">
+          {{ step.journeyInstance.journey.title }}
+          — {{ step.journeyStep.title }}
+          @if (step.journeyInstance.group) {
+            ({{ step.journeyInstance.group.name }})
+          }
+        </option>
+      }
+    </select>
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text font-medium">Activity name</span>
+    </label>
+    <input
+      type="text"
+      class="input input-bordered w-full"
+      name="name"
+      [ngModel]="name()"
+      (ngModelChange)="name.set($event)"
+      placeholder="What did you do?"
+    />
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text font-medium">Reflection</span>
+    </label>
+    <textarea
+      class="textarea textarea-bordered w-full"
+      name="note"
+      [ngModel]="note()"
+      (ngModelChange)="note.set($event)"
+      placeholder="Share a little about your experience..."
+      rows="4"
+    ></textarea>
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">Cancel</button>
+
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="!selectedStepInstanceId() || (!name().trim() && !note().trim())"
+    >
+      {{ activity() ? 'Save changes' : 'Record activity' }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,31 @@
+<article class="rounded-xl border border-base-300 bg-base-100 p-4">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <p class="font-semibold">
+        {{ message().author.name || 'Group member' }}
+      </p>
+
+      <p class="text-xs text-base-content/50">
+        {{ message().createdAt | date: 'medium' }}
+      </p>
+    </div>
+
+    @if (message().userId === currentUserId()) {
+      <div class="flex gap-1">
+        <button class="btn btn-ghost btn-xs" (click)="edit.emit(message())">Edit</button>
+        <button class="btn btn-ghost btn-xs text-error" (click)="delete.emit(message())">
+          Delete
+        </button>
+      </div>
+    }
+  </div>
+
+  <p class="mt-3 whitespace-pre-line text-sm">
+    {{ message().content }}
+  </p>
+
+  <app-journey-message-replies
+    [replies]="message().replies ?? []"
+    (replySubmitted)="onReply($event)"
+  />
+</article>

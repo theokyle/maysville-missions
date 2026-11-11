@@ -1,0 +1,82 @@
+@if (journey(); as journey) {
+  <div class="mx-auto max-w-4xl">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body items-center p-8 text-center md:p-12">
+        @if (journey.icon) {
+          <img
+            [src]="journey.icon"
+            [alt]="journey.title + ' icon'"
+            class="mb-4 h-40 w-40 object-contain"
+          />
+        }
+
+        <h1 class="text-3xl font-bold">{{ journey.title }}</h1>
+
+        <p class="mt-2 max-w-2xl text-base-content/70">
+          {{ journey.description }}
+        </p>
+
+        @if (journey.videoUrl) {
+          <div class="mt-6 w-full max-w-5xl">
+            <app-journey-video [videoUrl]="journey.videoUrl" />
+          </div>
+        }
+
+        <div class="mt-4 flex flex-wrap justify-center gap-3 text-sm">
+          <span class="badge badge-outline"> {{ journey.steps.length }} Tasks </span>
+          <span class="badge badge-outline">
+            {{ journey.type === 'GROUP' ? 'Group Journey' : 'Individual Journey' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="border-t border-base-300 p-6 md:p-8">
+        <h2 class="mb-5 text-lg font-bold">Your Journey</h2>
+
+        <div class="space-y-4">
+          @for (step of journey.steps; track step.id; let i = $index) {
+            <div class="flex items-start gap-4 rounded-xl bg-base-200 p-4">
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-content"
+              >
+                {{ i + 1 }}
+              </span>
+
+              <div>
+                <h3 class="font-semibold">{{ step.title }}</h3>
+                @if (step.description) {
+                  <p class="mt-1 text-sm text-base-content/70">
+                    {{ step.description }}
+                  </p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="flex justify-center border-t border-base-300 p-6">
+          @if (journey.type === 'INDIVIDUAL') {
+            @if (enrollment()) {
+              <a
+                routerLink="/my-journeys"
+                [queryParams]="{ view: 'individual' }"
+                [fragment]="journey.id"
+                class="btn btn-primary"
+              >
+                View Your Journey
+              </a>
+            } @else {
+              <app-journey-enrollment-button
+                [journeyId]="journey.id"
+                [enrolled]="false"
+                (enrollmentComplete)="onEnrollmentComplete($event)"
+              />
+            }
+          } @else {
+            <a routerLink="/groups" class="btn btn-primary"> Find a Group to Start This Journey </a>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

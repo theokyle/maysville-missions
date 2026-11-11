@@ -1,0 +1,13 @@
+<div class="rounded-xl border border-dashed border-base-300 p-8 text-center">
+  <h3 class="font-semibold">{{ title() }}</h3>
+
+  @if (description()) {
+    <p class="mx-auto mt-2 max-w-md text-sm text-base-content/60">
+      {{ description() }}
+    </p>
+  }
+
+  @if (actionLabel()) {
+    <ng-content />
+  }
+</div>

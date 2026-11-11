@@ -236,6 +236,37 @@ async function main() {
     console.log(`Created or updated journey: ${journey.title}`);
   }
 
+  // Create or update a sample group
+  console.log('Seeding sample group...');
+
+  const sampleGroupName = 'Community Builders';
+
+  const existingGroup = await prisma.group.findFirst({
+    where: {
+      name: sampleGroupName,
+    },
+  });
+
+  const sampleGroup = existingGroup
+    ? await prisma.group.update({
+        where: {
+          id: existingGroup.id,
+        },
+        data: {
+          description:
+            'A community of people practicing everyday acts of kindness, connection, and service. Grow together through shared journeys and conversation.',
+        },
+      })
+    : await prisma.group.create({
+        data: {
+          name: sampleGroupName,
+          description:
+            'A community of people practicing everyday acts of kindness, connection, and service. Grow together through shared journeys and conversation.',
+        },
+      });
+
+  console.log(`Created or updated group: ${sampleGroup.name}`);
+
   console.log('Seeding complete');
 }
 

@@ -1,0 +1,18 @@
+@if (activities().length) {
+  <div class="space-y-4">
+    @for (activity of activities(); track activity.id) {
+      <app-activity-card
+        [activity]="activity"
+        (edit)="editActivity.emit(activity)"
+        (delete)="deleteActivity.emit(activity)"
+      />
+    }
+  </div>
+} @else {
+  <div class="rounded-xl border border-dashed border-base-300 p-8 text-center">
+    <h3 class="font-semibold">No activities yet</h3>
+    <p class="mt-2 text-sm text-base-content/60">
+      Record an activity to start building your journal.
+    </p>
+  </div>
+}

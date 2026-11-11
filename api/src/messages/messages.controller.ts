@@ -7,27 +7,19 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 import { MessagesService } from './messages.service';
 
 import { CreateMessageDto } from './dto/create-message-dto';
 import { CreateReplyDto } from './dto/create-reply-dto';
 import { UpdateMessageDto } from './dto/update-message-dto';
-
-import { AuthGuard } from '@nestjs/passport';
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-  };
-}
+import { GetUser } from 'src/auth/get-user.decorator';
 
 @Controller('journey-messages')
-@UseGuards(AuthGuard())
+@UseGuards(AuthGuard('jwt'))
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
@@ -35,12 +27,12 @@ export class MessagesController {
   // optionally filtered by journey step.
   @Get(':journeyInstanceId')
   getMessages(
-    @Req() req: AuthenticatedRequest,
+    @GetUser('id') userId: string,
     @Param('journeyInstanceId') journeyInstanceId: string,
     @Query('journeyStepId') journeyStepId?: string,
   ) {
     return this.messagesService.getMessages(
-      req.user.id,
+      userId,
       journeyInstanceId,
       journeyStepId,
     );
@@ -49,47 +41,39 @@ export class MessagesController {
   // Create a new top-level message.
   @Post(':journeyInstanceId')
   createMessage(
-    @Req() req: AuthenticatedRequest,
+    @GetUser('id') userId: string,
     @Param('journeyInstanceId') journeyInstanceId: string,
     @Body() dto: CreateMessageDto,
   ) {
-    return this.messagesService.createMessage(
-      req.user.id,
-      journeyInstanceId,
-      dto,
-    );
+    return this.messagesService.createMessage(userId, journeyInstanceId, dto);
   }
 
   // Reply to an existing message.
   @Post(':messageId/replies')
   replyToMessage(
-    @Req() req: AuthenticatedRequest,
+    @GetUser('id') userId: string,
     @Param('messageId') messageId: string,
     @Body() dto: CreateReplyDto,
   ) {
-    return this.messagesService.replyToMessage(
-      req.user.id,
-      messageId,
-      dto.content,
-    );
+    return this.messagesService.replyToMessage(userId, messageId, dto.content);
   }
 
   // Edit one of the user's own messages.
   @Patch(':messageId')
   updateMessage(
-    @Req() req: AuthenticatedRequest,
+    @GetUser('id') userId: string,
     @Param('messageId') messageId: string,
     @Body() dto: UpdateMessageDto,
   ) {
-    return this.messagesService.updateMessage(req.user.id, messageId, dto);
+    return this.messagesService.updateMessage(userId, messageId, dto);
   }
 
   // Delete one of the user's own messages.
   @Delete(':messageId')
   deleteMessage(
-    @Req() req: AuthenticatedRequest,
+    @GetUser('id') userId: string,
     @Param('messageId') messageId: string,
   ) {
-    return this.messagesService.deleteMessage(req.user.id, messageId);
+    return this.messagesService.deleteMessage(userId, messageId);
   }
 }

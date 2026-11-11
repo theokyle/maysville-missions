@@ -222,7 +222,7 @@ model JourneyMessage {
   journeyStep     JourneyStep?    @relation(fields: [journeyStepId], references: [id], onDelete: SetNull)
 
   // Threaded replies
-  parent  JourneyMessage?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  parent  JourneyMessage?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies JourneyMessage[] @relation("MessageReplies")
 
   createdAt DateTime @default(now())

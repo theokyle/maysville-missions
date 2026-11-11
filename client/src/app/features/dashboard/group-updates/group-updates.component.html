@@ -1,0 +1,28 @@
+<section class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-bold">Group Updates</h2>
+    <a routerLink="/groups" class="link link-primary text-sm"> View groups </a>
+  </div>
+
+  @if (messages().length) {
+    <div class="space-y-3">
+      @for (message of messages(); track message.id) {
+        <article class="rounded-xl border border-base-300 bg-base-100 p-4">
+          <p class="font-medium">
+            {{ message.author.name || 'Group member' }}
+          </p>
+
+          <p class="mt-2 text-sm">{{ message.content }}</p>
+
+          <p class="mt-2 text-xs text-base-content/50">
+            {{ message.createdAt | date: 'medium' }}
+          </p>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="rounded-xl bg-base-100 p-5 text-sm text-base-content/60">
+      Group discussions and updates will appear here.
+    </p>
+  }
+</section>

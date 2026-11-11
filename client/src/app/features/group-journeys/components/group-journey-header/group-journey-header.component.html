@@ -1,0 +1,16 @@
+<header class="rounded-xl bg-base-100 p-6">
+  <p class="text-sm font-semibold uppercase tracking-wide text-primary">Group journey</p>
+
+  <h1 class="mt-2 text-3xl font-bold">
+    {{ enrollment().journey.title }}
+  </h1>
+
+  <p class="mt-3 text-base-content/70">
+    {{ enrollment().journey.description }}
+  </p>
+
+  <div class="mt-5 flex flex-wrap gap-4 text-sm text-base-content/60">
+    <span> Started {{ enrollment().startedAt | date: 'mediumDate' }} </span>
+    <span> {{ enrollment().journey.steps.length }} steps </span>
+  </div>
+</header>

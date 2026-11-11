@@ -1,0 +1,16 @@
+<form class="space-y-3" (ngSubmit)="submit()">
+  <textarea
+    class="textarea textarea-bordered w-full"
+    rows="3"
+    placeholder="Share a thought or reflection with your group..."
+    [ngModel]="content()"
+    (ngModelChange)="content.set($event)"
+    name="content"
+  ></textarea>
+
+  <div class="flex justify-end">
+    <button type="submit" class="btn btn-primary btn-sm" [disabled]="!content().trim()">
+      Post message
+    </button>
+  </div>
+</form>

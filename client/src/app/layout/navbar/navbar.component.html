@@ -1,0 +1,27 @@
+<header class="navbar border-b border-base-300 bg-base-100 px-4 fixed top-0 left-0 z-50 w-full">
+  <div class="flex-1">
+    <a routerLink="/dashboard" class="text-xl font-bold text-primary"> Maysville Missions </a>
+  </div>
+
+  <div class="flex-none gap-3">
+    @if (user(); as currentUser) {
+      <span class="hidden text-sm md:inline">
+        {{ currentUser.name || currentUser.email }}
+      </span>
+    }
+
+    <div class="dropdown dropdown-end">
+      <button tabindex="0" class="btn btn-ghost btn-circle" aria-label="Account menu">
+        <span class="text-lg">☰</span>
+      </button>
+
+      <ul
+        tabindex="0"
+        class="menu dropdown-content z-50 mt-3 w-48 rounded-box bg-base-100 p-2 shadow"
+      >
+        <li><a routerLink="/profile">Profile</a></li>
+        <li><button (click)="logout()">Sign out</button></li>
+      </ul>
+    </div>
+  </div>
+</header>

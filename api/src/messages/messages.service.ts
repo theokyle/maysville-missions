@@ -238,12 +238,6 @@ export class MessagesService {
         tx,
       );
 
-      if (message.replies.length > 0) {
-        throw new BadRequestException(
-          'Delete the replies before deleting this post',
-        );
-      }
-
       await tx.journeyMessage.delete({
         where: {
           id: messageId,

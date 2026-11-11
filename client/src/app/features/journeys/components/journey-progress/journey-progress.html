@@ -1,0 +1,10 @@
+<div class="space-y-2">
+  <div class="flex items-center justify-between text-sm">
+    <span class="font-medium">Your progress</span>
+    <span class="text-base-content/60"> {{ completedCount() }} of {{ totalCount() }} steps </span>
+  </div>
+
+  <progress class="progress progress-primary w-full" [value]="percentage()" max="100"></progress>
+
+  <p class="text-right text-xs text-base-content/60">{{ percentage() }}% complete</p>
+</div>
