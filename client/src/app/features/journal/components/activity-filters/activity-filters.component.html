@@ -1,0 +1,17 @@
+<div class="flex flex-wrap items-center gap-3">
+  <label for="journey-filter" class="text-sm font-medium"> Filter by journey </label>
+
+  <select
+    id="journey-filter"
+    class="select select-bordered select-sm"
+    [ngModel]="selectedJourneyId()"
+    (ngModelChange)="filterChange.emit($event)"
+    name="journeyFilter"
+  >
+    <option value="">All journeys</option>
+
+    @for (journey of journeyIds(); track journey.id) {
+      <option [value]="journey.id">{{ journey.title }}</option>
+    }
+  </select>
+</div>

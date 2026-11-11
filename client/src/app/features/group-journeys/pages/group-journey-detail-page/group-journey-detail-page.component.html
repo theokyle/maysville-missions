@@ -1,0 +1,53 @@
+<section class="mx-auto max-w-6xl space-y-8">
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (enrollment(); as currentEnrollment) {
+    <app-group-journey-header [enrollment]="currentEnrollment" />
+
+    @if (currentEnrollment.journey.videoUrl) {
+      <div class="mx-auto w-full max-w-5xl mt-10">
+        <app-journey-video [videoUrl]="currentEnrollment.journey.videoUrl" />
+      </div>
+    }
+
+    <div class="border-t border-base-300 p-6 md:p-8 bg-base-100 rounded-xl mt-10">
+      <h2 class="mb-5 text-lg font-bold">Your Journey</h2>
+
+      <div class="space-y-4">
+        @for (step of enrollment()?.journey?.steps; track step.id; let i = $index) {
+          <div class="flex items-start gap-4 rounded-xl bg-base-200 p-4">
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-content"
+            >
+              {{ i + 1 }}
+            </span>
+
+            <div>
+              <h3 class="font-semibold">{{ step.title }}</h3>
+              @if (step.description) {
+                <p class="mt-1 text-sm text-base-content/70">
+                  {{ step.description }}
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <section class="pt-10">
+      <app-journey-discussion
+        [messages]="messages()"
+        [currentUserId]="currentUserId()"
+        (createMessage)="createMessage($event)"
+        (reply)="createReply($event)"
+        (edit)="editMessage($event)"
+        (delete)="deleteMessage($event)"
+      />
+    </section>
+  } @else {
+    <div class="alert alert-warning">This group journey could not be found.</div>
+  }
+</section>

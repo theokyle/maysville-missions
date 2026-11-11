@@ -1,0 +1,39 @@
+<aside
+  class="hidden sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 border-r border-base-300 bg-base-100 p-4 md:block"
+>
+  <nav class="h-full overflow-y-auto">
+    <ul class="menu gap-1">
+      <li>
+        <a
+          [routerLink]="dashboardLink.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ dashboardLink.label }}
+        </a>
+      </li>
+    </ul>
+
+    @for (group of navigationGroups; track group.label) {
+      <div class="mt-6">
+        <h2 class="px-4 pb-2 text-xs font-semibold uppercase tracking-wider text-base-content/50">
+          {{ group.label }}
+        </h2>
+
+        <ul class="menu gap-1">
+          @for (link of group.links; track link.path) {
+            <li>
+              <a
+                [routerLink]="link.path"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+              >
+                {{ link.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+</aside>

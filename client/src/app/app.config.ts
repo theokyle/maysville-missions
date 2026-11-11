@@ -6,10 +6,10 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { authInterceptor } from './core/account/auth-interceptor';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 import { routes } from './app.routes';
-import { AccountService } from './core/account/account-service';
+import { AccountService } from './core/services/account.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [

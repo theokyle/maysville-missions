@@ -8,6 +8,7 @@ import {
   IsString,
   Min,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { JourneyType } from 'src/generated/prisma/enums';
 
@@ -27,6 +28,10 @@ export class CreateJourneyDto {
   @IsEnum(JourneyType)
   @IsOptional()
   type?: JourneyType;
+
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
 
   @IsArray()
   @IsOptional()
@@ -51,4 +56,16 @@ export class CreateJourneyStepDto {
   @IsInt()
   @Min(0)
   sortOrder!: number;
+
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  groupChatPrompt?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresGroupPost?: boolean;
 }

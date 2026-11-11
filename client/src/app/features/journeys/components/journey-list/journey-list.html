@@ -1,0 +1,5 @@
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+  @for (journey of journeys(); track journey.id) {
+    <app-journey-card [journey]="journey" [enrolled]="enrolledJourneyIds().includes(journey.id)" />
+  }
+</div>

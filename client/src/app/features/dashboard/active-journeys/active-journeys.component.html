@@ -1,0 +1,37 @@
+<section class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-bold">Your Journeys</h2>
+    <a routerLink="/journeys" class="link link-primary text-sm"> Discover more </a>
+  </div>
+
+  @if (journeys().length) {
+    <div class="space-y-3">
+      @for (enrollment of journeys(); track enrollment.id) {
+        <a
+          [routerLink]="['/journeys', enrollment.journeyId]"
+          class="block rounded-xl border border-base-300 bg-base-100 p-4 transition hover:border-primary"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="font-semibold">{{ enrollment.journey.title }}</h3>
+            <span class="badge badge-outline">
+              {{ enrollment.status.replace('_', ' ') }}
+            </span>
+          </div>
+
+          <p class="mt-1 text-sm text-base-content/60">
+            {{ enrollment.journey.description }}
+          </p>
+
+          <p class="mt-3 text-xs text-base-content/60">
+            Started {{ enrollment.startedAt | date: 'mediumDate' }}
+          </p>
+        </a>
+      }
+    </div>
+  } @else {
+    <p class="rounded-xl bg-base-100 p-5 text-sm text-base-content/60">
+      You haven't joined a journey yet.
+      <a routerLink="/journeys" class="link link-primary">Explore journeys</a>.
+    </p>
+  }
+</section>

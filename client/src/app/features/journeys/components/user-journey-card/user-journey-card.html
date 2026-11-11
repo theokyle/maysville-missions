@@ -1,0 +1,195 @@
+@if (journey(); as enrollment) {
+  <div
+    [id]="enrollment.journeyId"
+    class="collapse collapse-arrow relative w-full rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm"
+  >
+    <input type="checkbox" />
+
+    @if (enrollment.status === 'IN_PROGRESS') {
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-square absolute left-3 top-3 z-20 text-error"
+        aria-label="Leave journey"
+        title="Leave journey"
+        (click)="unenroll()"
+      >
+        <span class="text-lg">&times;</span>
+      </button>
+    }
+
+    <!-- Journey Summary -->
+    <div class="collapse-title p-0">
+      <div class="flex items-center gap-4 p-5">
+        <div class="avatar shrink-0">
+          <div class="w-20 rounded-xl">
+            @if (enrollment.journey.icon) {
+              <img [src]="enrollment.journey.icon" [alt]="enrollment.journey.title + ' icon'" />
+            } @else {
+              <div class="flex h-full items-center justify-center bg-base-200">
+                <span class="text-2xl">M</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xl font-semibold">
+              {{ enrollment.journey.title }}
+            </h2>
+
+            <span class="badge badge-primary badge-lg shrink-0">
+              {{ completedSteps() }}/{{ totalSteps() }}
+            </span>
+          </div>
+
+          @if (enrollment.journey.description) {
+            <p class="mt-1 text-sm text-base-content/70">
+              {{ enrollment.journey.description }}
+            </p>
+          }
+
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            <span
+              class="badge"
+              [class.badge-primary]="enrollment.status === 'IN_PROGRESS'"
+              [class.badge-success]="enrollment.status === 'COMPLETED'"
+              [class.badge-error]="enrollment.status === 'ABANDONED'"
+            >
+              {{ enrollment.status.replace('_', ' ') }}
+            </span>
+
+            <span class="text-xs text-base-content/50">
+              Started {{ enrollment.startedAt | date: 'mediumDate' }}
+            </span>
+          </div>
+
+          <!-- Overall Progress -->
+          <div class="mt-4">
+            <progress
+              class="progress progress-primary w-full"
+              [value]="completedSteps()"
+              [max]="totalSteps() || 1"
+            ></progress>
+
+            <div class="mt-1 flex justify-between text-xs text-base-content/60">
+              <span>{{ progressPercent() }}% Complete</span>
+              <span>{{ remainingSteps() }} Remaining</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expanded Content -->
+    <div class="collapse-content pt-0">
+      <div class="divider mt-0">Journey Steps</div>
+
+      <div class="space-y-3">
+        @for (step of stepInstances(); track step.id) {
+          <div class="rounded-xl border border-base-300 bg-base-200 p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h3 class="font-medium">
+                  {{ step.journeyStep.title }}
+                </h3>
+
+                @if (step.journeyStep.description) {
+                  <p class="mt-1 text-sm text-base-content/70">
+                    {{ step.journeyStep.description }}
+                  </p>
+                }
+              </div>
+
+              @if (step.completed) {
+                <span class="badge badge-success shrink-0">Complete</span>
+              } @else {
+                <span class="badge badge-outline shrink-0">
+                  {{ step.currentCount }}/{{ step.journeyStep.targetCount }}
+                </span>
+              }
+            </div>
+
+            <progress
+              class="progress progress-success mt-3 w-full"
+              [value]="step.currentCount"
+              [max]="step.journeyStep.targetCount || 1"
+            ></progress>
+
+            <!-- Activity History -->
+            @if (step.activities.length) {
+              <div class="mt-3 space-y-2">
+                <h4 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                  Activity History
+                </h4>
+
+                @for (activity of step.activities; track activity.id) {
+                  <button
+                    type="button"
+                    class="block w-full rounded-lg bg-base-100 p-3 text-left text-sm transition-colors hover:bg-base-300 focus-visible:outline focus-visible:outline-primary"
+                    (click)="openActivity(activity)"
+                    [attr.aria-label]="'View activity: ' + (activity.name || 'Untitled activity')"
+                  >
+                    @if (activity.name) {
+                      <p class="font-medium">{{ activity.name }}</p>
+                    }
+
+                    @if (activity.note) {
+                      <p class="mt-1 text-base-content/70">
+                        {{ activity.note }}
+                      </p>
+                    }
+
+                    <p class="mt-1 text-xs text-base-content/50">
+                      {{ activity.createdAt | date: 'mediumDate' }}
+                    </p>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (enrollment.status === 'IN_PROGRESS' && !step.completed) {
+              <button
+                type="button"
+                class="btn btn-outline btn-sm mt-3"
+                (click)="openLogActivity(step)"
+              >
+                Log Activity
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Journey Actions -->
+      <div class="mt-6">
+        @if (enrollment.status === 'IN_PROGRESS') {
+          <button
+            type="button"
+            class="btn btn-primary w-full"
+            [disabled]="remainingSteps() === 0"
+            (click)="openNextStepActivity()"
+          >
+            Log Activity
+          </button>
+        }
+
+        @if (enrollment.status === 'COMPLETED') {
+          <p class="text-center text-sm text-success">You've completed this journey. Well done!</p>
+        }
+
+        @if (enrollment.status === 'ABANDONED') {
+          <button type="button" class="btn btn-primary w-full" (click)="rejoin()">
+            Rejoin Journey
+          </button>
+        }
+      </div>
+
+      <div class="mt-4 text-center">
+        <a [routerLink]="['/journeys', enrollment.journeyId]" class="link link-hover text-sm">
+          View Journey Details
+        </a>
+      </div>
+    </div>
+  </div>
+}

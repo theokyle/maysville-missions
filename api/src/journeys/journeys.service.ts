@@ -8,13 +8,16 @@ export class JourneysService {
   constructor(private prisma: PrismaService) {}
 
   create(createJourneyDto: CreateJourneyDto) {
-    const { title, description, icon, type, steps } = createJourneyDto;
+    const { title, description, icon, type, videoUrl, steps } =
+      createJourneyDto;
+
     return this.prisma.journey.create({
       data: {
         title,
         description,
         icon,
         type,
+        videoUrl,
         steps: {
           create: steps ?? [],
         },
@@ -43,9 +46,7 @@ export class JourneysService {
 
   async findOne(id: string) {
     const journey = await this.prisma.journey.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       include: {
         steps: {
           orderBy: {
@@ -63,31 +64,34 @@ export class JourneysService {
   }
 
   async update(id: string, updateJourneyDto: UpdateJourneyDto) {
-    const { title, description, icon, type } = updateJourneyDto;
-    try {
-      return await this.prisma.journey.update({
-        where: { id },
-        data: {
-          title,
-          description,
-          icon,
-          type,
+    await this.findOne(id);
+
+    const { title, description, icon, type, videoUrl } = updateJourneyDto;
+
+    return this.prisma.journey.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        icon,
+        type,
+        videoUrl,
+      },
+      include: {
+        steps: {
+          orderBy: {
+            sortOrder: 'asc',
+          },
         },
-      });
-    } catch {
-      throw new NotFoundException('Journey not found');
-    }
+      },
+    });
   }
 
   async remove(id: string) {
-    try {
-      return await this.prisma.journey.delete({
-        where: {
-          id,
-        },
-      });
-    } catch {
-      throw new NotFoundException('Journey not found');
-    }
+    await this.findOne(id);
+
+    return this.prisma.journey.delete({
+      where: { id },
+    });
   }
 }

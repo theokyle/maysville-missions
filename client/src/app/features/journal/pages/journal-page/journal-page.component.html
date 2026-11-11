@@ -1,0 +1,73 @@
+<section class="mx-auto max-w-5xl space-y-6">
+  <header>
+    <h1 class="text-3xl font-bold">Your Journal</h1>
+    <p class="mt-2 text-base-content/60">
+      Reflect on the ways you're putting your journey into practice.
+    </p>
+  </header>
+
+  @if (error()) {
+    <div class="alert alert-error">
+      {{ error() }}
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <app-activity-filters
+        [journeyIds]="journeyOptions()"
+        [selectedJourneyId]="selectedJourneyId()"
+        (filterChange)="selectedJourneyId.set($event)"
+      />
+
+      <button
+        class="btn btn-primary"
+        [disabled]="steps().length === 0"
+        (click)="selectStep(steps()[0].id)"
+      >
+        Record activity
+      </button>
+    </div>
+  }
+
+  @if (showForm()) {
+    <section class="rounded-xl border border-base-300 bg-base-100 p-5">
+      <h2 class="mb-4 text-lg font-semibold">
+        {{ editingActivity() ? 'Edit activity' : 'Record an activity' }}
+      </h2>
+
+      <app-activity-form
+        [steps]="stepProgress()"
+        [stepInstanceId]="selectedStepInstanceId()"
+        [activity]="editingActivity()"
+        (submitted)="saveActivity($event)"
+        (cancelled)="closeForm()"
+      />
+    </section>
+  }
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (filteredActivities().length > 0) {
+    <app-activity-timeline
+      [activities]="filteredActivities()"
+      (editActivity)="editActivity($event)"
+      (deleteActivity)="deleteActivity($event)"
+    />
+  } @else {
+    <div class="rounded-xl border border-base-300 bg-base-100 px-6 py-12 text-center">
+      <h2 class="text-lg font-semibold">No activities yet</h2>
+      <p class="mt-2 text-sm text-base-content/60">
+        Start recording the ways you're putting your journey into practice.
+      </p>
+
+      @if (steps().length > 0) {
+        <button class="btn btn-primary mt-4" (click)="selectStep(steps()[0].id)">
+          Record your first activity
+        </button>
+      }
+    </div>
+  }
+</section>

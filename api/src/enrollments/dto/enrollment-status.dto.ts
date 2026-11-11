@@ -5,3 +5,8 @@ export class EnrollmentStatusDto {
   @IsEnum(JourneyStatus)
   status!: JourneyStatus;
 }
+
+export class UpdateJourneyStatusDto {
+  @IsEnum(JourneyStatus)
+  status!: JourneyStatus;
+}

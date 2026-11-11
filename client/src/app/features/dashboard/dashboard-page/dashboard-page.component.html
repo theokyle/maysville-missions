@@ -1,0 +1,16 @@
+<section class="mx-auto max-w-6xl space-y-8">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-wide text-primary">Maysville Missions</p>
+    <h1 class="mt-2 text-3xl font-bold">Your Dashboard</h1>
+    <p class="mt-2 text-base-content/60">
+      Notice opportunities, put your faith into practice, and grow together.
+    </p>
+  </header>
+
+  <app-active-journeys [journeys]="journeys()" />
+
+  <div class="grid gap-8 lg:grid-cols-2 mt-10">
+    <app-recent-activity [activities]="activities()" />
+    <app-group-updates [messages]="[]" />
+  </div>
+</section>

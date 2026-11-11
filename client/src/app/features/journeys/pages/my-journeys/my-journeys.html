@@ -1,0 +1,85 @@
+<section class="mx-auto max-w-6xl space-y-8">
+  <header>
+    <h1 class="text-3xl font-bold">My Journeys</h1>
+    <p class="mt-2 text-base-content/60">
+      Keep track of your progress and reflect on the ways you're putting your journey into practice.
+    </p>
+  </header>
+
+  <!-- Journey type selector -->
+  <div class="flex flex-wrap gap-2 border-b border-base-300">
+    <button
+      type="button"
+      class="btn btn-sm rounded-b-none"
+      [class.btn-primary]="selectedView() === 'individual'"
+      [class.btn-ghost]="selectedView() !== 'individual'"
+      (click)="setView('individual')"
+    >
+      Individual Journeys
+      <span class="badge badge-sm">
+        {{ individualJourneys().length }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-sm rounded-b-none"
+      [class.btn-primary]="selectedView() === 'group'"
+      [class.btn-ghost]="selectedView() !== 'group'"
+      (click)="setView('group')"
+    >
+      Group Journeys
+      <span class="badge badge-sm">
+        {{ groupJourneys().length }}
+      </span>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-error">
+      {{ error() }}
+    </div>
+  } @else if (displayedJourneys().length === 0) {
+    <div class="rounded-xl border border-base-300 bg-base-100 p-10 text-center">
+      @if (selectedView() === 'individual') {
+        <h2 class="text-xl font-semibold">No individual journeys yet</h2>
+        <p class="mt-2 text-base-content/60">
+          Explore available journeys and find a place to begin.
+        </p>
+      } @else {
+        <h2 class="text-xl font-semibold">No group journeys yet</h2>
+        <p class="mt-2 text-base-content/60">
+          Join a group journey to grow and put your faith into practice alongside others.
+        </p>
+      }
+
+      <a routerLink="/journeys" class="btn btn-primary mt-5"> Explore Journeys </a>
+    </div>
+  } @else {
+    <div class="space-y-6 flex flex-col gap-5">
+      @for (journey of displayedJourneys(); track journey.id) {
+        <app-user-journey-card
+          [journey]="journey"
+          (logActivityRequested)="openActivityForm($event)"
+          (activitySelected)="viewActivity($event)"
+          (unenrollRequested)="unenrollJourney($event)"
+          (rejoinRequested)="onJourneyUpdated()"
+        />
+      }
+    </div>
+  }
+
+  @if (showActivityLog()) {
+    <activity-log
+      [activity]="selectedActivity()"
+      [journeys]="displayedJourneys()"
+      [selectedStep]="selectedStep()"
+      (closed)="closeActivityLog()"
+      (saved)="onActivitySaved()"
+    />
+  }
+</section>

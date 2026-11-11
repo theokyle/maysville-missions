@@ -1,0 +1,29 @@
+<section class="mx-auto max-w-6xl space-y-6">
+  <header>
+    <h1 class="text-3xl font-bold">Groups</h1>
+    <p class="mt-2 text-base-content/60">
+      Find a community to share experiences and grow together.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg"></span>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  } @else if (groups().length) {
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      @for (group of groups(); track group.id) {
+        <app-group-card [group]="group" />
+      }
+    </div>
+  } @else {
+    <div class="rounded-xl border border-dashed border-base-300 p-8 text-center">
+      <h2 class="font-semibold">No groups found</h2>
+      <p class="mt-2 text-sm text-base-content/60">
+        Groups will appear here when they become available.
+      </p>
+    </div>
+  }
+</section>
