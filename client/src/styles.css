@@ -1,4 +1,78 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
-@plugin "daisyui";
+
+@plugin "daisyui" {
+  themes: maysville --default;
+}
+
+@plugin "daisyui/theme" {
+  name: 'maysville';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  /* Backgrounds and text */
+  --color-base-100: #f8f6f0;
+  --color-base-200: #ede7da;
+  --color-base-300: #e2ddcf;
+  --color-base-content: #2d3534;
+
+  /* Brand colors */
+  --color-primary: #315c5b;
+  --color-primary-content: #ffffff;
+
+  --color-secondary: #a8b59c;
+  --color-secondary-content: #2d3534;
+
+  --color-accent: #a6503f;
+  --color-accent-content: #ffffff;
+
+  /* Neutral colors */
+  --color-neutral: #2d3534;
+  --color-neutral-content: #ffffff;
+
+  /* Status colors */
+  --color-info: #527f91;
+  --color-info-content: #ffffff;
+
+  --color-success: #547b5b;
+  --color-success-content: #ffffff;
+
+  --color-warning: #b88a3b;
+  --color-warning-content: #2d3534;
+
+  --color-error: #a6503f;
+  --color-error-content: #ffffff;
+
+  /* Border radius */
+  --radius-box: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-selector: 0.5rem;
+}
+
+/* Form control borders */
+.input,
+.textarea,
+.select {
+  border: 1px solid #a8b59c;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: #315c5b;
+  outline: 2px solid #315c5b;
+  outline-offset: 1px;
+}
+
+.badge {
+  padding-inline: 0.75rem;
+  padding-block: 0.25rem;
+}
+
+.btn-primary {
+  border-color: #315c5b;
+}
+
+.btn-primary:hover {
+  border-color: #264a49;
+}
