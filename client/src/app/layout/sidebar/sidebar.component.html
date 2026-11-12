@@ -1,6 +1,28 @@
 <aside
-  class="hidden sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 border-r border-base-300 bg-base-100 p-4 md:block"
+  [class.sticky]="!isMobile()"
+  [class.top-16]="!isMobile()"
+  [class.h-[calc(100vh-4rem)]]="!isMobile()"
+  [class.w-60]="!isMobile()"
+  [class.shrink-0]="!isMobile()"
+  [class.border-r]="!isMobile()"
+  [class.fixed]="isMobile()"
+  [class.inset-0]="isMobile()"
+  [class.h-screen]="isMobile()"
+  [class.w-full]="isMobile()"
+  [class.z-[60]]="isMobile()"
+  class="bg-base-100 p-4"
 >
+  @if (isMobile()) {
+    <div class="flex justify-end mb-4">
+      <button
+        class="btn btn-ghost btn-square"
+        aria-label="Close navigation menu"
+        (click)="navigate.emit()"
+      >
+        <span class="text-3xl leading-none">&times;</span>
+      </button>
+    </div>
+  }
   <nav class="h-full overflow-y-auto">
     <ul class="menu gap-1">
       <li>
@@ -8,6 +30,7 @@
           [routerLink]="dashboardLink.path"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
+          (click)="navigate.emit()"
         >
           {{ dashboardLink.label }}
         </a>
@@ -27,6 +50,7 @@
                 [routerLink]="link.path"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
+                (click)="navigate.emit()"
               >
                 {{ link.label }}
               </a>
